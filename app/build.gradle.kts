@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-//    id("com.google.dagger.hilt.android") TODO: Add Hilt plugin
+    id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
     id("kotlinx-serialization")
 }
@@ -40,7 +40,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion =  "1.3.2"
+        kotlinCompilerExtensionVersion =  "1.5.9"
     }
 
 }
