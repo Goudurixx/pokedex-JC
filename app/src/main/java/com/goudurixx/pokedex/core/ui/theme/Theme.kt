@@ -1,4 +1,4 @@
-package com.goudurixx.pokedex.ui.theme
+package com.goudurixx.pokedex.core.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

@@ -22,7 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.goudurixx.pokedex.ui.theme.PokedexTheme
+import com.goudurixx.pokedex.core.ui.theme.PokedexTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

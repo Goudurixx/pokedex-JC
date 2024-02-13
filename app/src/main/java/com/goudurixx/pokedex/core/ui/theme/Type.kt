@@ -1,4 +1,4 @@
-package com.goudurixx.pokedex.ui.theme
+package com.goudurixx.pokedex.core.ui.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
