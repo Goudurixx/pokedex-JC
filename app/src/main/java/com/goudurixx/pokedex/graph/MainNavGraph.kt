@@ -29,8 +29,8 @@ fun MainNavGraph(
             onBackClick = {
                 navController.popBackStack()
             },
-            navigateToPokemonDetail = { pokemonId ->
-                navController.navigateToPokemonDetail(id = pokemonId)
+            navigateToPokemonDetail = { id ->
+                navController.navigateToPokemonDetail(id = id)
             }
         )
         pokemonDetailScreen(
