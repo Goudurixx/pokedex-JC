@@ -121,5 +121,6 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$room")
     kapt("androidx.room:room-compiler:$room")
     implementation ("androidx.room:room-ktx:$room")
+    implementation ("androidx.room:room-paging:$room")
 
 }

@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class PokemonRepository @Inject constructor(
-    private val pokemonRemoteDataSource: PokemonRemoteDataSource
+    private val remoteDataSource: PokemonRemoteDataSource,
 ) : IPokemonRepository {
     override fun getPokemonList(limit: Int, offset: Int) = flow {
-        emit(pokemonRemoteDataSource.getPokemonList(limit, offset).toDataModel())
+        emit(remoteDataSource.getPokemonList(limit, offset).toDataModel())
     }
 
     override fun getPokemonDetail(id: Int): Flow<PokemonModel> = flow {
-        emit(pokemonRemoteDataSource.getPokemonDetail(id).toDataModel())
+        emit(remoteDataSource.getPokemonDetail(id).toDataModel())
     }
 }

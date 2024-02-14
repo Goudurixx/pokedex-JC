@@ -1,19 +1,25 @@
 package com.goudurixx.pokedex.features.pokemon.models
 
+import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
 import com.goudurixx.pokedex.data.models.PokemonListItemModel
 
 data class PokemonListItemUiModel(
     val id: Int,
     val name: String,
     val url: String,
-    val image: String
+    val imageUrl: String
 )
 
 fun PokemonListItemModel.toUiModel() = PokemonListItemUiModel(
-    id = url.toId(),
+    id = id,
     name = name,
     url = url,
-    image = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${url.toId()}.png"
+    imageUrl = imageUrl
 )
 
-private fun String.toId() : Int = substringBeforeLast("/").substringAfterLast("/").toInt()
+fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
+    id = id,
+    name = name,
+    url = url,
+    imageUrl = imageUrl
+)
