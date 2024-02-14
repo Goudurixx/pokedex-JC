@@ -11,12 +11,11 @@ import javax.inject.Inject
 class PokemonRepository @Inject constructor(
     private val pokemonRemoteDataSource: PokemonRemoteDataSource
 ) : IPokemonRepository {
-    override fun getPokemonList(limit: Int, offset: Int) {
-        TODO()
-//        pokemonRemoteDataSource.getPokemonList(limit, offset)
+    override fun getPokemonList(limit: Int, offset: Int) = flow {
+        emit(pokemonRemoteDataSource.getPokemonList(limit, offset).toDataModel())
     }
 
-    override fun getPokemonDetail(pokemonId: Int): Flow<PokemonModel> = flow {
-        emit(pokemonRemoteDataSource.getPokemonDetail(pokemonId).toDataModel())
+    override fun getPokemonDetail(id: Int): Flow<PokemonModel> = flow {
+        emit(pokemonRemoteDataSource.getPokemonDetail(id).toDataModel())
     }
 }

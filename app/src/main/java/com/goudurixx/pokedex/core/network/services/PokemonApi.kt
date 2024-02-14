@@ -19,7 +19,7 @@ class PokemonApi @Inject constructor() : IPokemonApi {
         }
     }
 
-    override suspend fun getPokemonList(limit : Int, offset : Int) : PokemonListResponse =
+    override suspend fun getPokemonList(limit: Int, offset: Int): PokemonListResponse =
         client.get("pokemon?limit=$limit&offset=$offset").body()
 
 
