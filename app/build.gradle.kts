@@ -109,10 +109,13 @@ dependencies {
 
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
-    // pager
-    implementation ("com.google.accompanist:accompanist-pager:0.21.2-beta")
-    implementation ("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
+//    // pager
+//    implementation ("com.google.accompanist:accompanist-pager:0.21.2-beta")
+//    implementation ("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
 
+    // Paging 3
+    implementation ("androidx.paging:paging-runtime-ktx:3.2.1")
+    implementation("androidx.paging:paging-compose:3.2.1")
     // room
     implementation("androidx.room:room-runtime:$room")
     annotationProcessor("androidx.room:room-compiler:$room")
