@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    id("com.apollographql.apollo3")
     id("kotlinx-serialization")
 }
 
@@ -30,11 +31,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -43,6 +44,12 @@ android {
         kotlinCompilerExtensionVersion =  "1.5.9"
     }
 
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.goudurixx.pokedex")
+    }
 }
 
 dependencies {
@@ -96,6 +103,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor")
     implementation("io.ktor:ktor-client-logging:$ktor")
+
+    // Apollo graphql
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 
