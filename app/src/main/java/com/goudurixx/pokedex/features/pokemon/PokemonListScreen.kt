@@ -1,9 +1,9 @@
 package com.goudurixx.pokedex.features.pokemon
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,22 +19,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.goudurixx.pokedex.R
 import com.goudurixx.pokedex.features.pokemon.models.PokemonListItemUiModel
+import java.util.Locale
 
 @Composable
 fun PokemonListRoute(
@@ -60,14 +68,6 @@ fun PokemonListScreen(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.Red,
-                        Color.Blue
-                    )
-                )
-            )
     ) {
         Column {
             Image(
@@ -99,6 +99,7 @@ fun PokemonListScreen(
                     if (pokemon != null) {
                         PokemonListItem(
                             pokemon = pokemon,
+                            backgroundColor = MaterialTheme.colorScheme.secondaryContainer.toArgb(),
                             navigateToPokemonDetail = navigateToPokemonDetail
                         )
                     }
@@ -109,7 +110,13 @@ fun PokemonListScreen(
 }
 
 @Composable
-fun PokemonListItem(pokemon: PokemonListItemUiModel, navigateToPokemonDetail: (Int) -> Unit) {
+fun PokemonListItem(
+    pokemon: PokemonListItemUiModel,
+    backgroundColor: Int,
+    navigateToPokemonDetail: (Int) -> Unit
+) {
+    var dominantColor by remember { mutableIntStateOf(backgroundColor) }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -117,14 +124,27 @@ fun PokemonListItem(pokemon: PokemonListItemUiModel, navigateToPokemonDetail: (I
             .clickable { navigateToPokemonDetail(pokemon.id) },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = Color(dominantColor),
+            contentColor = Color(dominantColor).takeIf { it.luminance() > 0.5f }
+                ?.let { Color.Black } ?: Color.White
         ),
     ) {
+
         val imageRequest = ImageRequest.Builder(LocalContext.current)
-            .data(pokemon.imageUrl).crossfade(true)
+            .data(pokemon.imageUrl)
+            .allowHardware(false)
+            .crossfade(true)
+            .listener { _, result ->
+                result.drawable.let {
+                    dominantColor = Palette.from(it.toBitmap()).generate().dominantSwatch?.rgb
+                        ?: backgroundColor
+                }
+
+            }
+            .placeholder(R.drawable.pokeball)
             .build()
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             AsyncImage(
                 model = imageRequest,
                 contentDescription = null,
@@ -132,7 +152,7 @@ fun PokemonListItem(pokemon: PokemonListItemUiModel, navigateToPokemonDetail: (I
                     .size(100.dp)
                     .padding(8.dp)
             )
-            Text(text = pokemon.name)
+            Text(text = pokemon.name.capitalize(Locale.ROOT))
         }
     }
 }

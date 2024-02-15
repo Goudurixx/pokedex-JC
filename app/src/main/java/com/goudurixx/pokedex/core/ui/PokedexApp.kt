@@ -1,4 +1,4 @@
-package com.goudurixx.pokedex.ui
+package com.goudurixx.pokedex.core.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
