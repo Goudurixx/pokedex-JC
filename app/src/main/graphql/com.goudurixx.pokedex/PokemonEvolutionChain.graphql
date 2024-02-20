@@ -1,0 +1,14 @@
+query PokemonEvolutionChain($_id: Int = 133) {
+    pokemon_v2_pokemon_by_pk(id: $_id) {
+        pokemon_v2_pokemonspecy {
+            pokemon_v2_evolutionchain {
+                id
+                pokemon_v2_pokemonspecies {
+                    name
+                    id
+                    evolves_from_species_id
+                }
+            }
+        }
+    }
+}

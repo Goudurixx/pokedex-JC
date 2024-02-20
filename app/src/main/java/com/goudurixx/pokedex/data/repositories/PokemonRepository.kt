@@ -2,6 +2,8 @@ package com.goudurixx.pokedex.data.repositories
 
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.data.datasources.PokemonRemoteDataSource
+import com.goudurixx.pokedex.data.models.EvolutionChainModel
+import com.goudurixx.pokedex.data.models.PokemonListItemModel
 import com.goudurixx.pokedex.data.models.PokemonModel
 import com.goudurixx.pokedex.data.models.toDataModel
 import kotlinx.coroutines.flow.Flow
@@ -21,5 +23,9 @@ class PokemonRepository @Inject constructor(
 
     override fun getPokemonDetail(id: Int): Flow<PokemonModel> = flow {
         emit(remoteDataSource.getPokemonDetail(id).toDataModel())
+    }
+
+    override fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel> = flow {
+        emit(remoteDataSource.getPokemonEvolutionChain(id).toDataModel())
     }
 }

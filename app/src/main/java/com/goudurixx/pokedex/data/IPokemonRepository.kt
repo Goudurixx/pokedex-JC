@@ -10,4 +10,6 @@ interface IPokemonRepository {
     fun getPokemonList(limit: Int, offset: Int) : Flow<PokemonListModel>
     fun getPokemonCompletion(query: String) : Flow<List<PokemonListItemModel>>
     fun getPokemonDetail(id: Int) : Flow<PokemonModel>
+
+    fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel>
 }

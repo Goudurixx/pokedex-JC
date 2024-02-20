@@ -40,4 +40,13 @@ class PokemonApi @Inject constructor(
     override suspend fun getPokemonDetail(id: Int): PokemonResponse =
         client.get("pokemon/$id").body()
 
+    override suspend fun getPokemonEvolutionChain(id: Int): EvolutionChainResponse {
+        return apolloClient.query(PokemonEvolutionChainQuery(_id = Optional.present(id)))
+            .execute()
+            .data?.pokemon_v2_pokemon_by_pk?.pokemon_v2_pokemonspecy?.pokemon_v2_evolutionchain?.toResponseModel() ?: EvolutionChainResponse(
+            id = id,
+            pokemon_v2_pokemonspecies = emptyList()
+        )
+    }
+
 }
