@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.data.mediator
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -38,7 +39,12 @@ class PokemonRemoteMediator @Inject constructor(
             }
 
             val response =
-                pokemonApi.getPokemonList(state.config.pageSize, loadKey).toDataModel().results
+                try {
+                    pokemonApi.getPokemonList(state.config.pageSize, loadKey).toDataModel().results
+                } catch (e: Exception) {
+                    Log.e("PokemonRemoteMediator", "An error occured while trying to fetch list", e)
+                    return MediatorResult.Error(e)
+                }
 
             pokedexDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
@@ -51,8 +57,10 @@ class PokemonRemoteMediator @Inject constructor(
 
             MediatorResult.Success(endOfPaginationReached = response.isEmpty())
         } catch (e: IOException) {
+            Log.e("PokemonRemoteMediator", "IOException", e)
             MediatorResult.Error(e)
         } catch (e: HttpRequestTimeoutException) {
+            Log.e("PokemonRemoteMediator", "HttpRequestTimeoutException", e)
             MediatorResult.Error(e)
         }
     }

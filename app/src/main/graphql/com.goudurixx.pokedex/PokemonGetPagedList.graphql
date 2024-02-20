@@ -1,0 +1,6 @@
+query PokemonGetPagedList($_limit: Int, $_offset: Int) {
+    pokemon_v2_pokemon(limit: $_limit, offset: $_offset) {
+        name
+        id
+    }
+}

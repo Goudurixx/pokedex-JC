@@ -25,11 +25,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providePokemonApi(pokemonApi: PokemonApi): IPokemonApi {
-        return pokemonApi
-    }
+    fun providePokemonApi(pokemonApi: PokemonApi): IPokemonApi = pokemonApi
+
     @Provides
     @Singleton
-    fun providePokemonRepository(pokemonRepository: PokemonRepository): IPokemonRepository = pokemonRepository
+    fun providePokemonRepository(pokemonRepository: PokemonRepository): IPokemonRepository =
+        pokemonRepository
 
 }

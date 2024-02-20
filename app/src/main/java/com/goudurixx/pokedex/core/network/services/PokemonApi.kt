@@ -3,6 +3,7 @@ package com.goudurixx.pokedex.core.network.services
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
 import com.goudurixx.pokedex.PokemonEvolutionChainQuery
+import com.goudurixx.pokedex.PokemonGetPagedListQuery
 import com.goudurixx.pokedex.PokemonSearchCompletionQuery
 import com.goudurixx.pokedex.core.network.IPokemonApi
 import com.goudurixx.pokedex.core.network.models.EvolutionChainResponse
@@ -28,14 +29,22 @@ class PokemonApi @Inject constructor(
     }
 
     override suspend fun getPokemonList(limit: Int, offset: Int): PokemonListResponse =
-        client.get("pokemon?limit=$limit&offset=$offset").body()
-
-    override suspend fun getPokemonSearchCompletion(query: String): PokemonListResponse {
-        return apolloClient.query(PokemonSearchCompletionQuery(query = Optional.present(query)))
+        apolloClient.query(
+            PokemonGetPagedListQuery(
+                _limit = Optional.present(limit),
+                _offset = Optional.present(offset)
+            )
+        )
             .execute()
             .data
             ?.toResponseModel() ?: PokemonListResponse(results = emptyList())
-    }
+
+
+    override suspend fun getPokemonSearchCompletion(query: String): PokemonListResponse =
+        apolloClient.query(PokemonSearchCompletionQuery(query = Optional.present(query)))
+            .execute()
+            .data
+            ?.toResponseModel() ?: PokemonListResponse(results = emptyList())
 
     override suspend fun getPokemonDetail(id: Int): PokemonResponse =
         client.get("pokemon/$id").body()
@@ -43,10 +52,11 @@ class PokemonApi @Inject constructor(
     override suspend fun getPokemonEvolutionChain(id: Int): EvolutionChainResponse {
         return apolloClient.query(PokemonEvolutionChainQuery(_id = Optional.present(id)))
             .execute()
-            .data?.pokemon_v2_pokemon_by_pk?.pokemon_v2_pokemonspecy?.pokemon_v2_evolutionchain?.toResponseModel() ?: EvolutionChainResponse(
-            id = id,
-            pokemon_v2_pokemonspecies = emptyList()
-        )
+            .data?.pokemon_v2_pokemon_by_pk?.pokemon_v2_pokemonspecy?.pokemon_v2_evolutionchain?.toResponseModel()
+            ?: EvolutionChainResponse(
+                id = id,
+                pokemon_v2_pokemonspecies = emptyList()
+            )
     }
 
 }
