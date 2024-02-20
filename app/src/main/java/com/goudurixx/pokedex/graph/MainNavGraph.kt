@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.goudurixx.pokedex.core.routing.models.Graph
 import com.goudurixx.pokedex.features.home.navigation.homeScreen
+import com.goudurixx.pokedex.features.pokemap.navigation.pokeMap
 import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonDetail
 import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonList
 import com.goudurixx.pokedex.features.pokemon.navigation.pokemonDetailScreen
@@ -29,13 +30,24 @@ fun MainNavGraph(
             onBackClick = {
                 navController.popBackStack()
             },
-            navigateToPokemonDetail = { id ->
-                navController.navigateToPokemonDetail(id = id)
+            navigateToPokemonDetail = { id, color ->
+                navController.navigateToPokemonDetail(id = id, color = color)
             }
         )
         pokemonDetailScreen(
             onBackClick = {
                 navController.popBackStack()
+            },
+            navigateToPokemonDetail = { id, color ->
+                navController.navigateToPokemonDetail(id = id, color = color)
+            }
+        )
+        pokeMap(
+            onBackClick = {
+                navController.popBackStack()
+            },
+            navigateToPokemonDetail = { id, color  ->
+                navController.navigateToPokemonDetail(id = id, color = color)
             }
         )
     }
