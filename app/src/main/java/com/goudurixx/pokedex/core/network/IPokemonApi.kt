@@ -6,5 +6,6 @@ import com.goudurixx.pokedex.core.network.models.PokemonResponse
 interface IPokemonApi {
     suspend fun getPokemonList(limit: Int, offset: Int): PokemonListResponse
 
+    suspend fun getPokemonSearchCompletion(query: String): PokemonListResponse
     suspend fun getPokemonDetail(id: Int): PokemonResponse
 }

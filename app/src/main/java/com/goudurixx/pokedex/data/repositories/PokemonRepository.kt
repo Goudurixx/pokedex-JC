@@ -15,6 +15,10 @@ class PokemonRepository @Inject constructor(
         emit(remoteDataSource.getPokemonList(limit, offset).toDataModel())
     }
 
+    override fun getPokemonCompletion(query: String): Flow<List<PokemonListItemModel>> = flow {
+        emit(remoteDataSource.getPokemonSearchCompletion(query).toDataModel().results)
+    }
+
     override fun getPokemonDetail(id: Int): Flow<PokemonModel> = flow {
         emit(remoteDataSource.getPokemonDetail(id).toDataModel())
     }

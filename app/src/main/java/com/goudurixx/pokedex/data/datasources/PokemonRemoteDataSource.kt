@@ -9,5 +9,7 @@ class PokemonRemoteDataSource @Inject constructor(
 
     suspend fun getPokemonList(limit: Int, offset: Int) = pokemonApi.getPokemonList(limit, offset)
 
+    suspend fun getPokemonSearchCompletion(query: String) = pokemonApi.getPokemonSearchCompletion(query)
+
     suspend fun getPokemonDetail(id: Int) = pokemonApi.getPokemonDetail(id)
 }
