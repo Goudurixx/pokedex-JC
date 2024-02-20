@@ -8,7 +8,10 @@ data class PokemonDetailUiModel(
     val height: Int,
     val weight: Int,
     val imageUrl: String?,
-//    val types: List<String>, TODO
+    val sprites: SpritesUiModel,
+    val cries: String,
+    val types: List<TypeUiModel>,
+    val stats: List<StatUiModel>
 )
 
 fun PokemonModel.toUiModel() = PokemonDetailUiModel(
@@ -16,5 +19,9 @@ fun PokemonModel.toUiModel() = PokemonDetailUiModel(
     name = name,
     height = height,
     weight = weight,
-    imageUrl = sprites.frontDefault,
+    imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+    cries = cries.latest,
+    sprites = sprites.toUiModel(),
+    types = types.map { it.toUiModel() },
+    stats = stats.map { it.toUiModel() }
 )

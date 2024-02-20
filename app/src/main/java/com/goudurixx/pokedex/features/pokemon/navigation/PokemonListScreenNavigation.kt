@@ -16,7 +16,7 @@ fun NavController.navigateToPokemonList(navOptions: NavOptions? = null) {
 
 internal fun NavGraphBuilder.pokemonList(
     onBackClick: () -> Unit,
-    navigateToPokemonDetail: (Int) -> Unit,
+    navigateToPokemonDetail: (Int, Int) -> Unit,
 ) {
     composable(route = pokemonListRoute) {
         PokemonListRoute(

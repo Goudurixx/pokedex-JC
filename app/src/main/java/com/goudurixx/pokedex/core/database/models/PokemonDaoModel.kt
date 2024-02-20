@@ -9,7 +9,7 @@ import com.goudurixx.pokedex.data.models.PokemonListItemModel
 data class PokemonDaoModel(
     @field:PrimaryKey(autoGenerate = false) val id: Int,
     @ColumnInfo val name: String,
-    @ColumnInfo val url: String,
+    @ColumnInfo val url: String?,
     @ColumnInfo val imageUrl: String,
 )
 

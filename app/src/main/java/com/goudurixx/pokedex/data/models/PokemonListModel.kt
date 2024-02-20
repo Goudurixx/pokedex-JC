@@ -3,7 +3,7 @@ package com.goudurixx.pokedex.data.models
 import com.goudurixx.pokedex.core.network.models.PokemonListResponse
 
 data class PokemonListModel(
-    val count: Int,
+    val count: Int?,
     val next: String?,
     val previous: String?,
     val results: List<PokemonListItemModel>

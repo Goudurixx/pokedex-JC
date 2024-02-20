@@ -6,7 +6,7 @@ import com.goudurixx.pokedex.data.models.PokemonListItemModel
 data class PokemonListItemUiModel(
     val id: Int,
     val name: String,
-    val url: String,
+    val url: String?,
     val imageUrl: String
 )
 

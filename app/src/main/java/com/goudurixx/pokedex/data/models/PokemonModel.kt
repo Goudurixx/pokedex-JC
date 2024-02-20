@@ -7,7 +7,11 @@ data class PokemonModel(
     val name : String,
     val height : Int,
     val weight : Int,
-    val sprites : SpritesModel
+    val sprites : SpritesModel,
+    val cries : CriesModel,
+    val types : List<TypeModel>,
+    val stats : List<StatModel>,
+    val evolutionChainId : Int? = null
 )
 
 fun PokemonResponse.toDataModel() = PokemonModel(
@@ -16,4 +20,7 @@ fun PokemonResponse.toDataModel() = PokemonModel(
     height = height,
     weight = weight,
     sprites = sprites.toDataModel(),
+    cries = cries.toDataModel(),
+    types = types.map { it.toDataModel() },
+    stats = stats.map { it.toDataModel() },
 )

@@ -2,8 +2,9 @@ package com.goudurixx.pokedex.core.network.models
 
 import kotlinx.serialization.Serializable
 
+
 @Serializable
-data class CriesResponse(
-    val latest: String,
-    val legacy: String? = null
+data class PastTypeResponse(
+    val generation: GenerationResponse,
+    val types: List<TypeResponse>
 )
