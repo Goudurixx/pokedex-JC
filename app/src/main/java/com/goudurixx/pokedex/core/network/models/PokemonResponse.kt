@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PokemonResponse(
     val abilities: List<AbilityResponse>,
-    val base_experience: Int,
+    val base_experience: Int? = null,
     val cries: CriesResponse,
     val forms: List<FormResponse>,
     val game_indices: List<GameIndiceResponse>,
