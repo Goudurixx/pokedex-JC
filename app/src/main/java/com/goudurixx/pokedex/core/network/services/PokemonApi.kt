@@ -7,6 +7,7 @@ import com.goudurixx.pokedex.PokemonGetPagedListQuery
 import com.goudurixx.pokedex.PokemonSearchCompletionQuery
 import com.goudurixx.pokedex.core.network.IPokemonApi
 import com.goudurixx.pokedex.core.network.models.EvolutionChainResponse
+import com.goudurixx.pokedex.core.network.models.OrderByParametersNetworkModel
 import com.goudurixx.pokedex.core.network.models.PokemonListResponse
 import com.goudurixx.pokedex.core.network.models.PokemonResponse
 import com.goudurixx.pokedex.core.network.models.toResponseModel
@@ -28,17 +29,20 @@ class PokemonApi @Inject constructor(
         }
     }
 
-    override suspend fun getPokemonList(limit: Int, offset: Int): PokemonListResponse =
-        apolloClient.query(
-            PokemonGetPagedListQuery(
-                _limit = Optional.present(limit),
-                _offset = Optional.present(offset)
-            )
+    override suspend fun getPokemonList(
+        limit: Int,
+        offset: Int,
+        orderByParameters: OrderByParametersNetworkModel?
+    ): PokemonListResponse = apolloClient.query(
+        PokemonGetPagedListQuery(
+            _limit = Optional.present(limit),
+            _offset = Optional.present(offset),
+            _order_by = Optional.presentIfNotNull(orderByParameters?.parameters)
         )
-            .execute()
-            .data
-            ?.toResponseModel() ?: PokemonListResponse(results = emptyList())
-
+    )
+        .execute()
+        .data
+        ?.toResponseModel() ?: PokemonListResponse(results = emptyList())
 
     override suspend fun getPokemonSearchCompletion(query: String): PokemonListResponse =
         apolloClient.query(PokemonSearchCompletionQuery(query = Optional.present(query)))

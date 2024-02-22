@@ -13,5 +13,5 @@ fun PokemonListModel.toUiModel() = PokemonListUiModel(
     count = count,
     next = next,
     previous = previous,
-    results = results.map { it.toUiModel() }
+    results = results.mapIndexed { index, pokemon -> pokemon.toUiModel(index) }
 )

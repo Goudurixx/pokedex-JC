@@ -7,15 +7,17 @@ import com.goudurixx.pokedex.data.models.PokemonListItemModel
 
 @Entity(tableName = "pokemon")
 data class PokemonDaoModel(
-    @field:PrimaryKey(autoGenerate = false) val id: Int,
+    @ColumnInfo val id: Int,
+    @PrimaryKey(autoGenerate = false) val index: Int,
     @ColumnInfo val name: String,
     @ColumnInfo val url: String?,
-    @ColumnInfo val imageUrl: String,
+    @ColumnInfo val imageUrl: String
 )
 
-fun PokemonListItemModel.toDaoModel() = PokemonDaoModel(
+fun PokemonListItemModel.toDaoModel(index: Int) = PokemonDaoModel(
     id = id,
     name = name,
     url = url,
-    imageUrl = imageUrl
+    imageUrl = imageUrl,
+    index = index
 )

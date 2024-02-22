@@ -1,20 +1,43 @@
 package com.goudurixx.pokedex.data.repositories
 
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.goudurixx.pokedex.core.common.models.OrderBy
+import com.goudurixx.pokedex.core.database.PokedexDatabase
+import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
 import com.goudurixx.pokedex.data.IPokemonRepository
+import com.goudurixx.pokedex.data.datasources.PokemonLocalDataSource
 import com.goudurixx.pokedex.data.datasources.PokemonRemoteDataSource
+import com.goudurixx.pokedex.data.mediator.PokemonRemoteMediator
 import com.goudurixx.pokedex.data.models.EvolutionChainModel
 import com.goudurixx.pokedex.data.models.PokemonListItemModel
 import com.goudurixx.pokedex.data.models.PokemonModel
 import com.goudurixx.pokedex.data.models.toDataModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class PokemonRepository @Inject constructor(
     private val remoteDataSource: PokemonRemoteDataSource,
+    private val localDataSource: PokemonLocalDataSource,
+    private val pokedexDatabase: PokedexDatabase
 ) : IPokemonRepository {
-    override fun getPokemonList(limit: Int, offset: Int) = flow {
-        emit(remoteDataSource.getPokemonList(limit, offset).toDataModel())
+
+    private var orderBy : OrderBy? = null
+    private var pager: Pager<Int, PokemonDaoModel>? = null
+
+    override fun getPokemonPagerList(orderBy: OrderBy?): Flow<PagingData<PokemonListItemModel>> {
+        updateOrderByParams(orderBy)
+        if (pager == null) {
+            pager = createPager()
+        }
+        return pager!!.flow.map { pagingData ->
+            pagingData.map { it.toDataModel() }
+        }
     }
 
     override fun getPokemonCompletion(query: String): Flow<List<PokemonListItemModel>> = flow {
@@ -27,5 +50,27 @@ class PokemonRepository @Inject constructor(
 
     override fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel> = flow {
         emit(remoteDataSource.getPokemonEvolutionChain(id).toDataModel())
+    }
+
+    @OptIn(ExperimentalPagingApi::class)
+    private fun createPager(): Pager<Int, PokemonDaoModel> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 50,
+                prefetchDistance = 0,
+                initialLoadSize = 49
+            ),
+            remoteMediator = PokemonRemoteMediator(
+                orderBy = orderBy,
+                remoteDataSource = remoteDataSource,
+                pokedexDatabase = pokedexDatabase
+            ),
+            pagingSourceFactory = { localDataSource.loadAllPokemonsPaged() }
+        )
+    }
+
+    private fun updateOrderByParams(orderBy: OrderBy?) {
+        this.orderBy = orderBy
+        pager = createPager() // recreate the pager with the new orderBy parameter
     }
 }

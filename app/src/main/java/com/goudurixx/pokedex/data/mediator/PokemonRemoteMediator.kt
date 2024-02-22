@@ -6,10 +6,11 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.goudurixx.pokedex.core.common.models.OrderBy
 import com.goudurixx.pokedex.core.database.PokedexDatabase
 import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
 import com.goudurixx.pokedex.core.database.models.toDaoModel
-import com.goudurixx.pokedex.core.network.IPokemonApi
+import com.goudurixx.pokedex.data.datasources.PokemonRemoteDataSource
 import com.goudurixx.pokedex.data.models.toDataModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import java.io.IOException
@@ -17,12 +18,13 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
 class PokemonRemoteMediator @Inject constructor(
-    private val pokemonApi: IPokemonApi,
+    private val orderBy : OrderBy? = null,
+    private val remoteDataSource: PokemonRemoteDataSource,
     private val pokedexDatabase: PokedexDatabase
 ) : RemoteMediator<Int, PokemonDaoModel>() {
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, PokemonDaoModel>
+        state: PagingState<Int, PokemonDaoModel>,
     ): MediatorResult {
         return try {
             val loadKey = when (loadType) {
@@ -33,14 +35,14 @@ class PokemonRemoteMediator @Inject constructor(
                     if (lastItem == null) {
                         0
                     } else {
-                        (lastItem.id + 1 / state.config.pageSize)
+                        lastItem.index + 1 / state.config.pageSize + 1
                     }
                 }
             }
 
             val response =
                 try {
-                    pokemonApi.getPokemonList(state.config.pageSize, loadKey).toDataModel().results
+                    remoteDataSource.getPokemonList(state.config.pageSize, loadKey, orderBy).toDataModel().results
                 } catch (e: Exception) {
                     Log.e("PokemonRemoteMediator", "An error occured while trying to fetch list", e)
                     return MediatorResult.Error(e)
@@ -48,10 +50,12 @@ class PokemonRemoteMediator @Inject constructor(
 
             pokedexDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                    pokedexDatabase.pokemonDao().clearAll()
+                   pokedexDatabase.pokemonDao().clearAll()
                 }
 
-                val pokemonDaos = response.map { it.toDaoModel() }
+                val pokemonDaos = response.mapIndexed { index, pokemon ->
+                    pokemon.toDaoModel(index + loadKey)
+                }
                 pokedexDatabase.pokemonDao().upsertAll(pokemonDaos)
             }
 

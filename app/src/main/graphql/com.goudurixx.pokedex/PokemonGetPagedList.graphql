@@ -1,5 +1,5 @@
-query PokemonGetPagedList($_limit: Int, $_offset: Int) {
-    pokemon_v2_pokemon(limit: $_limit, offset: $_offset) {
+query PokemonGetPagedList($_limit: Int, $_offset: Int, $_order_by: [pokemon_v2_pokemon_order_by!] = {id:asc}) {
+    pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by) {
         name
         id
     }
