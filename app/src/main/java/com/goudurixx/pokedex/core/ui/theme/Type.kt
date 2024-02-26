@@ -21,92 +21,92 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.goudurixx.pokedex.R
 
-val RubikFontFamily = FontFamily(
+val PoppinsFontFamily = FontFamily(
     listOf(
-        Font(R.font.rubik_light, FontWeight.W300),
-        Font(R.font.rubik_regular, FontWeight.W400),
-        Font(R.font.rubik_medium, FontWeight.W500),
-        Font(R.font.rubik_bold, FontWeight.W600)
+        Font(R.font.poppins_light, FontWeight.W300),
+        Font(R.font.poppins, FontWeight.W400),
+        Font(R.font.poppins_medium, FontWeight.W500),
+        Font(R.font.poppins_bold, FontWeight.W600)
     )
 )
 
 val Typography = Typography(
 
-    // Display Large - Rubik 57/64 . 0
+    // Display Large - Poppins 57/64 . 0
     displayLarge = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (0).sp,
     ),
 
-    // Display Medium - Rubik 45/52 .  0
+    // Display Medium - Poppins 45/52 .  0
     displayMedium = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 45.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Display Small - Rubik 36/44 . 0
+    // Display Small - Poppins 36/44 . 0
     displaySmall = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W400,
         fontSize = 36.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Headline Large - Rubik Medium 32/40 . 0
+    // Headline Large - Poppins Medium 32/40 . 0
     headlineLarge = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Headline Medium - Rubik Medium 28/36 . 0
+    // Headline Medium - Poppins Medium 28/36 . 0
     headlineMedium = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Headline Small - Rubik Medium 24/32 . 0
+    // Headline Small - Poppins Medium 24/32 . 0
     headlineSmall = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Title Large - Rubik Medium 22/28 . 0
+    // Title Large - Poppins Medium 22/28 . 0
     titleLarge = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
     ),
 
-    // Title Medium - Rubik Medium 16/24 . +0.15
+    // Title Medium - Poppins Medium 16/24 . +0.15
     titleMedium = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp,
     ),
 
-    // Title Small - Rubik Medium 14/14 . +0.1
+    // Title Small - Poppins Medium 14/14 . +0.1
     titleSmall = TextStyle(
-        fontFamily = RubikFontFamily,
+        fontFamily = PoppinsFontFamily,
         fontWeight = FontWeight.W500,
         fontSize = 14.sp,
         lineHeight = 14.sp,
@@ -169,20 +169,20 @@ fun PreviewTypography(){
     val modifier = Modifier.padding(4.dp)
     Column(Modifier.background(MaterialTheme.colorScheme.background)) {
         Card(modifier = modifier, colors = cardColors, border = borderStroke) {
-            Text(text = "Display Large - Rubik 57/64 . 0  ", style = MaterialTheme.typography.displayLarge)
-            Text(text = "Display Medium - Rubik 45/52 .  0  ", style = MaterialTheme.typography.displayMedium)
-            Text(text = "Display Small - Rubik 36/44 . 0 ", style = MaterialTheme.typography.displaySmall)
+            Text(text = "Display Large - Poppins 57/64 . 0  ", style = MaterialTheme.typography.displayLarge)
+            Text(text = "Display Medium - Poppins 45/52 .  0  ", style = MaterialTheme.typography.displayMedium)
+            Text(text = "Display Small - Poppins 36/44 . 0 ", style = MaterialTheme.typography.displaySmall)
         }
         Card(modifier = modifier, colors = cardColors, border = borderStroke) {
-            Text(text = "Headline Large - Rubik Medium 32/40 . 0  ", style = MaterialTheme.typography.headlineLarge)
-            Text(text = "Headline Medium - Rubik Medium 28/36 . 0  ", style = MaterialTheme.typography.headlineMedium)
-            Text(text = "Headline Small - Rubik Medium 24/32 . 0", style = MaterialTheme.typography.headlineSmall)
+            Text(text = "Headline Large - Poppins Medium 32/40 . 0  ", style = MaterialTheme.typography.headlineLarge)
+            Text(text = "Headline Medium - Poppins Medium 28/36 . 0  ", style = MaterialTheme.typography.headlineMedium)
+            Text(text = "Headline Small - Poppins Medium 24/32 . 0", style = MaterialTheme.typography.headlineSmall)
 
         }
         Card(modifier = modifier, colors = cardColors, border = borderStroke) {
-            Text(text = "Title Large - Rubik Medium 22/28 . 0  ", style = MaterialTheme.typography.titleLarge)
-            Text(text = "Title Medium - Rubik Medium 16/24 . +0.15", style = MaterialTheme.typography.titleMedium)
-            Text(text = "Title Small - Rubik Medium 14/14 . +0.1  ", style = MaterialTheme.typography.titleSmall)
+            Text(text = "Title Large - Poppins Medium 22/28 . 0  ", style = MaterialTheme.typography.titleLarge)
+            Text(text = "Title Medium - Poppins Medium 16/24 . +0.15", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Title Small - Poppins Medium 14/14 . +0.1  ", style = MaterialTheme.typography.titleSmall)
 
         }
         Card(modifier = modifier, colors = cardColors, border = borderStroke) {
