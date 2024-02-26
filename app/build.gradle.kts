@@ -114,6 +114,9 @@ dependencies {
 
     // image fetch coil
     implementation("io.coil-kt:coil-compose:2.4.0")
+//    implementation("io.coil-kt:coil-svg:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")
+
 
     implementation ("androidx.core:core-ktx:1.12.0")
 

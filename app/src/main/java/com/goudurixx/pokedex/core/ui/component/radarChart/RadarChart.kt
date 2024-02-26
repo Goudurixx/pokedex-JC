@@ -48,7 +48,7 @@ fun RadarChart(
 
         val labelWidth = measureMaxLabelWidth(radarLabels, labelsStyle, textMeasurer)
         val labelRadius = (size.minDimension / 2) - (labelWidth / 4)
-        val radius = (size.minDimension / 2) - (labelWidth / 2)
+        val radius = (size.minDimension / 2) - (labelWidth)
         val numLines = radarLabels.size
         val radarChartConfig =
             calculateRadarConfig(labelRadius, radius, size, numLines, scalarSteps)

@@ -13,7 +13,15 @@ data class StatUiModel(
 )
 
 fun StatModel.toUiModel() = StatUiModel(
-    statName = statName,
+    statName = when(statId) {
+        1 -> "HP"
+        2 -> "ATK"
+        3 -> "DEF"
+        4 -> "SATK"
+        5 -> "SPDEF"
+        6 -> "SPD"
+        else -> "Unknown Stat"
+    },
     statId = statId,
     value = value,
     effort = effort,

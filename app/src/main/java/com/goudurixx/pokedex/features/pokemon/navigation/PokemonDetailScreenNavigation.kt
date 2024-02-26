@@ -45,10 +45,12 @@ internal fun NavGraphBuilder.pokemonDetailScreen(
             }
         )
     ) {
+        val id = it.arguments?.getInt(pokemonIdParam)
         val color = it.arguments?.getInt(pokemonColorParam)
         Log.e("PokemonDetailScreenNavigation", "color: $color")
         PokemonDetailRoute(
             onBackClick = onBackClick,
+            pokemonId = id,
             backgroundColor = color,
             navigateToPokemonDetail = { id, pokemonColor -> if(id != it.arguments?.getInt(pokemonIdParam)) navigateToPokemonDetail(id, pokemonColor) }
         )

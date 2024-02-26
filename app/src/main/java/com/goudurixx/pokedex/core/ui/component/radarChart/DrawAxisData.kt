@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.core.ui.component.radarChart
 
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.AnnotatedString
@@ -27,8 +28,9 @@ internal fun DrawScope.drawAxisData(
     val scalarStep = scalarValue / (scalarSteps - 1)
     val textVerticalOffset = 20.toDp().toPx()
     val labelHeight = textMeasurer.measure(AnnotatedString("M")).size.height
+    val bottomElement = radarLabels.size / 2
 
-
+    // AXIS LABELS
     for (step in 0 until scalarSteps) {
         drawText(
             textMeasurer = textMeasurer,
@@ -41,6 +43,7 @@ internal fun DrawScope.drawAxisData(
         )
     }
 
+    // RADAR LABELS
     for (line in labelsEndPoints.indices) {
         drawText(
             textMeasurer = textMeasurer,
@@ -52,7 +55,7 @@ internal fun DrawScope.drawAxisData(
                         text = radarLabels[line],
                     ), style = labelsStyle
                 ).size.width / 2,
-                labelsEndPoints[line].y - labelHeight / 2
+                labelsEndPoints[line].y - if (line == bottomElement) (labelHeight * 1.5f).toInt() else labelHeight / 2
             )
         )
     }
