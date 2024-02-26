@@ -341,11 +341,11 @@ fun PokemonListScreen(
 
 @Composable
 private fun PokemonList(
-    state: LazyListState = rememberLazyListState(),
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
     onItemClick: (Int, Int) -> Unit,
     contentPadding: PaddingValues,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    state: LazyListState = rememberLazyListState(),
 ) {
 
     LazyColumn(
@@ -444,7 +444,7 @@ fun PokemonListItem(
             )
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = String.format("%0${5}d", pokemon.id),
+                    text = String.format("#%0${3}d", pokemon.id),
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
