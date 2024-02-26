@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.filled.TrendingFlat
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -87,6 +86,7 @@ import androidx.palette.graphics.Palette
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.goudurixx.pokedex.R
+import com.goudurixx.pokedex.core.common.models.OrderByParameter
 import com.goudurixx.pokedex.core.common.models.OrderByValues
 import com.goudurixx.pokedex.core.ui.utils.getContrastingColor
 import com.goudurixx.pokedex.features.pokemon.models.PokemonListItemUiModel
@@ -130,11 +130,16 @@ fun PokemonListScreen(
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
     navigateToPokemonDetail: (Int, Int) -> Unit
 ) {
-    var active by rememberSaveable { mutableStateOf(false) }
+    var isDockedSearchBarActive by rememberSaveable { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val backgroundColor = MaterialTheme.colorScheme.background
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var showOrderMenu by remember { mutableStateOf(false) }
+    val selectedFilter by remember(sortFilterList) {
+        derivedStateOf {
+            sortFilterList.firstOrNull { it.order != null }
+        }
+    }
     val state = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -172,15 +177,16 @@ fun PokemonListScreen(
                         sortFilterList.forEach { sortFilterItem ->
                             DropdownMenuItem(text = {
                                 Text(text = sortFilterItem.parameter.parameterName)
-                            }, leadingIcon = {
-                                Icon(
-                                    imageVector = when (sortFilterItem.order) {
-                                        null -> Icons.AutoMirrored.Filled.TrendingFlat
-                                        OrderByValues.ASC -> Icons.Filled.TrendingUp
-                                        OrderByValues.DESC -> Icons.Filled.TrendingDown
-                                    },
-                                    contentDescription = null
-                                )
+                            }, trailingIcon = {
+                                sortFilterItem.order?.let {
+                                    Icon(
+                                        imageVector = when (it) {
+                                            OrderByValues.ASC -> Icons.Filled.TrendingUp
+                                            OrderByValues.DESC -> Icons.Filled.TrendingDown
+                                        },
+                                        contentDescription = null
+                                    )
+                                }
                             }, onClick = {
                                 when (sortFilterItem.order) {
                                     null -> onUpdateSort(sortFilterItem.copy(order = OrderByValues.ASC))
@@ -215,7 +221,7 @@ fun PokemonListScreen(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                active = false
+                isDockedSearchBarActive = false
                 keyboardController?.hide()
             }
     ) {
@@ -242,15 +248,15 @@ fun PokemonListScreen(
                     query = search,
                     onQueryChange = onUpdateSearch,
                     onSearch = {
-                        active = false
+                        isDockedSearchBarActive = false
                         keyboardController?.hide()
                         if (searchState is SearchUiState.Success && searchState.list.isNotEmpty()) navigateToPokemonDetail(
                             searchState.list.first().id,
                             backgroundColor.toArgb()
                         )
                     },
-                    active = active,
-                    onActiveChange = { active = it },
+                    active = isDockedSearchBarActive,
+                    onActiveChange = { isDockedSearchBarActive = it },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
@@ -302,7 +308,7 @@ fun PokemonListScreen(
                 }
             }
             PokemonList(
-                state = state,
+                selectedFilter = selectedFilter,
                 pokemonLazyPagingItems = pokemonLazyPagingItems,
                 onItemClick = navigateToPokemonDetail,
                 contentPadding = PaddingValues(
@@ -310,7 +316,8 @@ fun PokemonListScreen(
                     top = 88.dp,
                     end = 16.dp,
                     bottom = 16.dp
-                )
+                ),
+                state = state
             )
             AnimatedVisibility(
                 visible = showScrollToTopButton,
@@ -341,6 +348,7 @@ fun PokemonListScreen(
 
 @Composable
 private fun PokemonList(
+    selectedFilter: SortOrderItem?,
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
     onItemClick: (Int, Int) -> Unit,
     contentPadding: PaddingValues,
@@ -366,6 +374,7 @@ private fun PokemonList(
                 PokemonListItem(
                     pokemon = pokemon,
                     backgroundColor = MaterialTheme.colorScheme.secondaryContainer.toArgb(),
+                    selectedFilter = selectedFilter,
                     onItemClick = onItemClick,
                     modifier = Modifier
                 )
@@ -388,6 +397,7 @@ private fun PokemonList(
 fun PokemonListItem(
     pokemon: PokemonListItemUiModel,
     backgroundColor: Int,
+    selectedFilter: SortOrderItem?,
     onItemClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -425,6 +435,7 @@ fun PokemonListItem(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
             modifier = Modifier.fillMaxWidth()
         ) {
             AsyncImage(
@@ -451,6 +462,17 @@ fun PokemonListItem(
                     text = pokemon.name.capitalize(Locale.ROOT),
                     style = MaterialTheme.typography.bodyLarge
                 )
+                when (selectedFilter?.parameter) {
+                    OrderByParameter.HEIGHT -> "${pokemon.height} m"
+                    OrderByParameter.WEIGHT -> "${pokemon.weight} kg"
+                    OrderByParameter.BASE_EXPERIENCE -> "${pokemon.baseExperience ?: 0} EXP"
+                    else -> null
+                }?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }

@@ -664,7 +664,7 @@ fun StatisticsContentAsRadarChart(stats: List<StatUiModel>, modifier: Modifier) 
             netLinesStrokeCap = StrokeCap.Butt
         ),
         scalarSteps = 2,
-        scalarValue = 200.0,
+        scalarValue = 255.0,
         scalarValuesStyle = MaterialTheme.typography.labelSmall.copy(color = Color.Transparent),
         polygons = listOf(
             Polygon(

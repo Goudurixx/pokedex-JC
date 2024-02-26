@@ -2,5 +2,8 @@ query PokemonGetPagedList($_limit: Int, $_offset: Int, $_order_by: [pokemon_v2_p
     pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by) {
         name
         id
+        height
+        weight
+        base_experience
     }
 }
