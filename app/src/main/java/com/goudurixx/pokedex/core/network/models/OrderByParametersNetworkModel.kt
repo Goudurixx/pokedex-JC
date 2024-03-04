@@ -5,6 +5,8 @@ import com.goudurixx.pokedex.core.common.models.OrderBy
 import com.goudurixx.pokedex.core.common.models.OrderByParameter
 import com.goudurixx.pokedex.core.common.models.OrderByValues
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemon_order_by
+import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_aggregate_order_by
+import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_avg_order_by
 import com.goudurixx.pokedex.type.order_by
 
 data class OrderByParametersNetworkModel(
@@ -20,24 +22,42 @@ fun OrderBy.toOrderByNetworkModel() = OrderByParametersNetworkModel(
                     this.value.toOrderByNetworkModel()
                 )
             )
+
             OrderByParameter.NAME -> Pokemon_v2_pokemon_order_by(
                 name = Optional.present(
                     this.value.toOrderByNetworkModel()
                 )
             )
+
             OrderByParameter.HEIGHT -> Pokemon_v2_pokemon_order_by(
                 height = Optional.present(
                     this.value.toOrderByNetworkModel()
                 )
             )
+
             OrderByParameter.WEIGHT -> Pokemon_v2_pokemon_order_by(
                 weight = Optional.present(
                     this.value.toOrderByNetworkModel()
                 )
             )
+
             OrderByParameter.BASE_EXPERIENCE -> Pokemon_v2_pokemon_order_by(
                 base_experience = Optional.present(
                     this.value.toOrderByNetworkModel()
+                )
+            )
+
+            OrderByParameter.AVERAGE_STATS -> Pokemon_v2_pokemon_order_by(
+                pokemon_v2_pokemonstats_aggregate = Optional.present(
+                    Pokemon_v2_pokemonstat_aggregate_order_by(
+                        avg = Optional.present(
+                            Pokemon_v2_pokemonstat_avg_order_by(
+                                base_stat = Optional.present(
+                                    this.value.toOrderByNetworkModel()
+                                )
+                            )
+                        )
+                    )
                 )
             )
         }

@@ -11,7 +11,8 @@ data class PokemonListItemUiModel(
     val imageUrl: String,
     val height: Int? = null,
     val weight: Int? = null,
-    val baseExperience: Int? = null
+    val baseExperience: Int? = null,
+    val averageStat: Double? = null
 )
 
 fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiModel(
@@ -22,7 +23,8 @@ fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiMode
     imageUrl = imageUrl,
     height = height,
     weight = weight,
-    baseExperience = baseExperience
+    baseExperience = baseExperience,
+    averageStat = averageStat
 )
 
 fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
@@ -33,5 +35,6 @@ fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
     imageUrl = imageUrl,
     height = height,
     weight = weight,
-    baseExperience = baseExperience
+    baseExperience = baseExperience,
+    averageStat = averageStat
 )

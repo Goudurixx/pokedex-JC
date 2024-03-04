@@ -466,6 +466,7 @@ fun PokemonListItem(
                     OrderByParameter.HEIGHT -> "${pokemon.height} m"
                     OrderByParameter.WEIGHT -> "${pokemon.weight} kg"
                     OrderByParameter.BASE_EXPERIENCE -> "${pokemon.baseExperience ?: 0} EXP"
+                    OrderByParameter.AVERAGE_STATS -> "${pokemon.averageStat?.roundToInt() ?: 0}"
                     else -> null
                 }?.let {
                     Text(

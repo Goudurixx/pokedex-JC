@@ -14,7 +14,8 @@ data class PokemonDaoModel(
     @ColumnInfo val imageUrl: String,
     @ColumnInfo val height: Int? = null,
     @ColumnInfo val weight: Int? = null,
-    @ColumnInfo val baseExperience: Int? = null
+    @ColumnInfo val baseExperience: Int? = null,
+    @ColumnInfo val averageStat: Double? = null
 )
 
 fun PokemonListItemModel.toDaoModel(index: Int) = PokemonDaoModel(
@@ -25,5 +26,6 @@ fun PokemonListItemModel.toDaoModel(index: Int) = PokemonDaoModel(
     height = height,
     weight = weight,
     baseExperience = baseExperience,
+    averageStat = averageStat,
     index = index
 )

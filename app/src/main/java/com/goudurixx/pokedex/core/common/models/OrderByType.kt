@@ -10,7 +10,8 @@ enum class OrderByParameter(val parameterName: String) {
     NAME("name"),
     HEIGHT("height"),
     WEIGHT("weight"),
-    BASE_EXPERIENCE("base_experience")
+    BASE_EXPERIENCE("base_experience"),
+    AVERAGE_STATS("average_stats")
 }
 
 data class OrderBy(val parameter: OrderByParameter, val value: OrderByValues)

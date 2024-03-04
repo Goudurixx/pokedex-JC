@@ -1,5 +1,15 @@
 package com.goudurixx.pokedex.core.network.models
 
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.AbilityResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.CriesResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.FormResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.GameIndiceResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.MoveResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.PastTypeResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.SpeciesResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.SpritesResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.StatResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.TypeResponse
 import kotlinx.serialization.Serializable
 
 @Serializable

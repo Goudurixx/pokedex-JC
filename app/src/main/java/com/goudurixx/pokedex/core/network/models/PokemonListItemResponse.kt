@@ -13,6 +13,7 @@ data class PokemonListItemResponse(
     val height: Int? = null,
     val weight: Int? = null,
     val baseExperience: Int? = null,
+    val averageStat : Double? = null
 )
 
 fun PokemonGetPagedListQuery.Pokemon_v2_pokemon.toResponseModel() = PokemonListItemResponse(
@@ -21,6 +22,7 @@ fun PokemonGetPagedListQuery.Pokemon_v2_pokemon.toResponseModel() = PokemonListI
     height = height,
     weight = weight,
     baseExperience = base_experience,
+    averageStat = pokemon_v2_pokemonstats_aggregate.aggregate?.avg?.base_stat
 )
 
 fun PokemonSearchCompletionQuery.Pokemon_v2_pokemon.toResponseModel() : PokemonListItemResponse {
