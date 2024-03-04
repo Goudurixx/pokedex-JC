@@ -31,7 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import com.goudurixx.pokedex.graph.MainNavGraph
 import com.goudurixx.pokedex.navigation.MainDestinations
 
-private val mainDestinationsRoutes = MainDestinations.values().asList().map { it.route }
+private val mainDestinationsRoutes = MainDestinations.entries.map { it.route }
 
 
 @Composable
@@ -80,7 +80,7 @@ fun PokedexBottomBar(
             ) {
                 var dividerRatio by remember { mutableFloatStateOf(1f) }
 
-                MainDestinations.values().asList().forEach { dest ->
+                MainDestinations.entries.forEach { dest ->
                     val selected = currentDestination?.route === dest.route
                     NavigationBarItem(
                         icon = { Icon(imageVector = dest.icon, contentDescription = null) },

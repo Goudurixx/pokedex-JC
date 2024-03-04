@@ -10,6 +10,7 @@ import com.goudurixx.pokedex.core.network.models.EvolutionChainResponse
 import com.goudurixx.pokedex.core.network.models.OrderByParametersNetworkModel
 import com.goudurixx.pokedex.core.network.models.PokemonListResponse
 import com.goudurixx.pokedex.core.network.models.PokemonResponse
+import com.goudurixx.pokedex.core.network.models.WhereParametersNetworkModel
 import com.goudurixx.pokedex.core.network.models.toResponseModel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -32,12 +33,14 @@ class PokemonApi @Inject constructor(
     override suspend fun getPokemonList(
         limit: Int,
         offset: Int,
-        orderByParameters: OrderByParametersNetworkModel?
+        orderByParameters: OrderByParametersNetworkModel?,
+        whereParameters: WhereParametersNetworkModel?
     ): PokemonListResponse = apolloClient.query(
         PokemonGetPagedListQuery(
             _limit = Optional.present(limit),
             _offset = Optional.present(offset),
-            _order_by = Optional.presentIfNotNull(orderByParameters?.parameters)
+            _order_by = Optional.presentIfNotNull(orderByParameters?.parameters),
+            _where = Optional.presentIfNotNull(whereParameters?.parameters)
         )
     )
         .execute()

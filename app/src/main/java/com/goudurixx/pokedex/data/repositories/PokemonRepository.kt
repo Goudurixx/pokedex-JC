@@ -5,6 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.goudurixx.pokedex.core.common.models.FilterBy
 import com.goudurixx.pokedex.core.common.models.OrderBy
 import com.goudurixx.pokedex.core.database.PokedexDatabase
 import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
@@ -28,10 +29,11 @@ class PokemonRepository @Inject constructor(
 ) : IPokemonRepository {
 
     private var orderBy : OrderBy? = null
+    private var filterBy : List<FilterBy>? = null
     private var pager: Pager<Int, PokemonDaoModel>? = null
 
-    override fun getPokemonPagerList(orderBy: OrderBy?): Flow<PagingData<PokemonListItemModel>> {
-        updateOrderByParams(orderBy)
+    override fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>): Flow<PagingData<PokemonListItemModel>> {
+        updatePaginationParams(orderBy, filterBy)
         if (pager == null) {
             pager = createPager()
         }
@@ -62,6 +64,7 @@ class PokemonRepository @Inject constructor(
             ),
             remoteMediator = PokemonRemoteMediator(
                 orderBy = orderBy,
+                filterBy = filterBy,
                 remoteDataSource = remoteDataSource,
                 pokedexDatabase = pokedexDatabase
             ),
@@ -69,8 +72,9 @@ class PokemonRepository @Inject constructor(
         )
     }
 
-    private fun updateOrderByParams(orderBy: OrderBy?) {
+    private fun updatePaginationParams(orderBy: OrderBy?, filterBy: List<FilterBy>?) {
         this.orderBy = orderBy
+        this.filterBy = filterBy
         pager = createPager() // recreate the pager with the new orderBy parameter
     }
 }

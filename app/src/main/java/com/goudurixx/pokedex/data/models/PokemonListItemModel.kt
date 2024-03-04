@@ -12,7 +12,8 @@ data class PokemonListItemModel(
     val imageUrl: String,
     val height : Int? = null,
     val weight : Int? = null,
-    val baseExperience : Int? = null
+    val baseExperience : Int? = null,
+    val averageStat: Double? = null
 )
 
 fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
@@ -25,7 +26,8 @@ fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
         imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
         height = height,
         weight = weight,
-        baseExperience = baseExperience
+        baseExperience = baseExperience,
+        averageStat = averageStat
     )
 }
 
@@ -38,6 +40,7 @@ fun PokemonDaoModel.toDataModel(): PokemonListItemModel {
         imageUrl = imageUrl,
         height = height,
         weight = weight,
-        baseExperience = baseExperience
+        baseExperience = baseExperience,
+        averageStat = averageStat
     )
 }
