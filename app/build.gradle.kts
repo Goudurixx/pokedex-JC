@@ -119,6 +119,7 @@ dependencies {
 
 
     implementation ("androidx.core:core-ktx:1.12.0")
+    implementation ("androidx.core:core-splashscreen:1.0.1")
 
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
@@ -135,5 +136,7 @@ dependencies {
     kapt("androidx.room:room-compiler:$room")
     implementation ("androidx.room:room-ktx:$room")
     implementation ("androidx.room:room-paging:$room")
+
+
 
 }
