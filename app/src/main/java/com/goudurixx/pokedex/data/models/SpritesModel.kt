@@ -1,6 +1,6 @@
 package com.goudurixx.pokedex.data.models
 
-import com.goudurixx.pokedex.core.network.models.SpritesResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.SpritesResponse
 
 data class SpritesModel(
     val backDefault: String? = null,

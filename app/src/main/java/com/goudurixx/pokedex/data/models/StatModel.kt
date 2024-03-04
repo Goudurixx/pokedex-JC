@@ -1,6 +1,6 @@
 package com.goudurixx.pokedex.data.models
 
-import com.goudurixx.pokedex.core.network.models.StatResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.StatResponse
 import com.goudurixx.pokedex.core.utils.trimIntFromUrl
 
 data class StatModel(

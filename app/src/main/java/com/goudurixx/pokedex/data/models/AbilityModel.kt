@@ -1,6 +1,6 @@
 package com.goudurixx.pokedex.data.models
 
-import com.goudurixx.pokedex.core.network.models.AbilityResponse
+import com.goudurixx.pokedex.core.network.models.pokemonDetail.AbilityResponse
 
 data class AbilityModel(
     val name: String,
