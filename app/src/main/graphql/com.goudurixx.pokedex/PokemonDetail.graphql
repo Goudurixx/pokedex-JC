@@ -1,0 +1,32 @@
+query PokemonDetail($_id: Int = 123) {
+    pokemon_v2_pokemon_by_pk(id: $_id) {
+        name
+        id
+        height
+        weight
+        pokemon_species_id
+        pokemon_v2_pokemoncries {
+            cries
+        }
+        pokemon_v2_pokemonsprites {
+            sprites(path: "other")
+        }
+        pokemon_v2_pokemonstats {
+            stat_id
+            base_stat
+            pokemon_v2_stat {
+                name
+            }
+        }
+        pokemon_v2_pokemontypes {
+            pokemon_v2_type {
+                id
+                name
+            }
+        }
+    }
+    pokemon_v2_gender_by_pk(id: $_id) {
+        id
+        name
+    }
+}

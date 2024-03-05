@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("kotlin-kapt")
+    id("com.apollographql.apollo3")
     id("kotlinx-serialization")
 }
 
@@ -30,11 +31,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -43,6 +44,12 @@ android {
         kotlinCompilerExtensionVersion =  "1.5.9"
     }
 
+}
+
+apollo {
+    service("service") {
+        packageName.set("com.goudurixx.pokedex")
+    }
 }
 
 dependencies {
@@ -69,6 +76,7 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // material icons
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
@@ -94,6 +102,10 @@ dependencies {
     implementation("io.ktor:ktor-client-json:$ktor")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor")
+    implementation("io.ktor:ktor-client-logging:$ktor")
+
+    // Apollo graphql
+    implementation("com.apollographql.apollo3:apollo-runtime:3.8.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
 
@@ -102,19 +114,29 @@ dependencies {
 
     // image fetch coil
     implementation("io.coil-kt:coil-compose:2.4.0")
+//    implementation("io.coil-kt:coil-svg:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")
+
 
     implementation ("androidx.core:core-ktx:1.12.0")
+    implementation ("androidx.core:core-splashscreen:1.0.1")
 
     implementation ("androidx.palette:palette-ktx:1.0.0")
 
-    // pager
-    implementation ("com.google.accompanist:accompanist-pager:0.21.2-beta")
-    implementation ("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
+//    // pager
+//    implementation ("com.google.accompanist:accompanist-pager:0.21.2-beta")
+//    implementation ("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
 
+    // Paging 3
+    implementation ("androidx.paging:paging-runtime-ktx:3.2.1")
+    implementation("androidx.paging:paging-compose:3.2.1")
     // room
     implementation("androidx.room:room-runtime:$room")
     annotationProcessor("androidx.room:room-compiler:$room")
     kapt("androidx.room:room-compiler:$room")
     implementation ("androidx.room:room-ktx:$room")
+    implementation ("androidx.room:room-paging:$room")
+
+
 
 }

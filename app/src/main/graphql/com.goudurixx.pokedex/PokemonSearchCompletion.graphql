@@ -1,0 +1,6 @@
+query PokemonSearchCompletion($query: String = "") {
+    pokemon_v2_pokemon(where: {name: {_regex: $query}}) {
+        name
+        id
+    }
+}
