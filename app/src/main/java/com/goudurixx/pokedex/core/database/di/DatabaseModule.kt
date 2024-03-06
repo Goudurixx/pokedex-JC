@@ -22,4 +22,6 @@ object DatabaseModule {
         PokedexDatabase::class.java,
         "pokedex-database",
     ).build()
+
+
 }
