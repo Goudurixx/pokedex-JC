@@ -11,6 +11,7 @@ class PokemonRemoteDataSource @Inject constructor(
     private val pokemonApi: IPokemonApi
 ) {
 
+    suspend fun getPokedexGlobalData() = pokemonApi.getPokedexGlobalData()
     suspend fun getPokemonList(limit: Int, offset: Int, orderBy: OrderBy?, filterBy: List<FilterBy>?) = pokemonApi.getPokemonList(limit, offset, orderBy?.toOrderByNetworkModel(), filterBy?.toWhereParametersNetworkModel())
 
     suspend fun getPokemonSearchCompletion(query: String) = pokemonApi.getPokemonSearchCompletion(query)

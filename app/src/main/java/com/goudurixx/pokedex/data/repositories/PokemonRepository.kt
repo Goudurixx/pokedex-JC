@@ -12,8 +12,10 @@ import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.data.datasources.PokemonLocalDataSource
 import com.goudurixx.pokedex.data.datasources.PokemonRemoteDataSource
+import com.goudurixx.pokedex.data.mediator.PokedexGlobalDataRemoteMediator
 import com.goudurixx.pokedex.data.mediator.PokemonRemoteMediator
 import com.goudurixx.pokedex.data.models.EvolutionChainModel
+import com.goudurixx.pokedex.data.models.PokedexGlobalDataModel
 import com.goudurixx.pokedex.data.models.PokemonListItemModel
 import com.goudurixx.pokedex.data.models.PokemonModel
 import com.goudurixx.pokedex.data.models.toDataModel
@@ -25,14 +27,19 @@ import javax.inject.Inject
 class PokemonRepository @Inject constructor(
     private val remoteDataSource: PokemonRemoteDataSource,
     private val localDataSource: PokemonLocalDataSource,
-    private val pokedexDatabase: PokedexDatabase
+    private val pokedexDatabase: PokedexDatabase,
 ) : IPokemonRepository {
 
-    private var orderBy : OrderBy? = null
-    private var filterBy : List<FilterBy>? = null
+    private var orderBy: OrderBy? = null
+    private var filterBy: List<FilterBy>? = null
     private var pager: Pager<Int, PokemonDaoModel>? = null
 
-    override fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>): Flow<PagingData<PokemonListItemModel>> {
+    override val appData: Flow<PokedexGlobalDataModel> = PokedexGlobalDataRemoteMediator(remoteDataSource, pokedexDatabase).load()
+
+    override fun getPokemonPagerList(
+        orderBy: OrderBy?,
+        filterBy: List<FilterBy>
+    ): Flow<PagingData<PokemonListItemModel>> {
         updatePaginationParams(orderBy, filterBy)
         if (pager == null) {
             pager = createPager()

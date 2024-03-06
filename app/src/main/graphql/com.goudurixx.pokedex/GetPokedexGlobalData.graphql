@@ -1,0 +1,30 @@
+fragment statFields on pokemon_v2_pokemonstat_aggregate {
+    aggregate {
+        max {
+            base_stat
+        }
+        avg {
+            base_stat
+        }
+        min {
+            base_stat
+        }
+    }
+}
+
+query getPokedexGlobalData {
+    pokemon_v2_pokemon_aggregate {
+        aggregate {
+            count
+        }
+    }
+    pokemon_v2_pokemonstat(distinct_on: stat_id) {
+        pokemon_v2_stat {
+            pokemon_v2_pokemonstats_aggregate {
+                ...statFields
+            }
+            name
+            id
+        }
+    }
+}

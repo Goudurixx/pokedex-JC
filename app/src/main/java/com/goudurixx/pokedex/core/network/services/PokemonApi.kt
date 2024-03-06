@@ -2,12 +2,14 @@ package com.goudurixx.pokedex.core.network.services
 
 import com.apollographql.apollo3.ApolloClient
 import com.apollographql.apollo3.api.Optional
+import com.goudurixx.pokedex.GetPokedexGlobalDataQuery
 import com.goudurixx.pokedex.PokemonEvolutionChainQuery
 import com.goudurixx.pokedex.PokemonGetPagedListQuery
 import com.goudurixx.pokedex.PokemonSearchCompletionQuery
 import com.goudurixx.pokedex.core.network.IPokemonApi
 import com.goudurixx.pokedex.core.network.models.EvolutionChainResponse
 import com.goudurixx.pokedex.core.network.models.OrderByParametersNetworkModel
+import com.goudurixx.pokedex.core.network.models.PokedexGlobalDataReponse
 import com.goudurixx.pokedex.core.network.models.PokemonListResponse
 import com.goudurixx.pokedex.core.network.models.PokemonResponse
 import com.goudurixx.pokedex.core.network.models.WhereParametersNetworkModel
@@ -29,6 +31,9 @@ class PokemonApi @Inject constructor(
             header("Accept", "*/*")
         }
     }
+
+    override suspend fun getPokedexGlobalData(): PokedexGlobalDataReponse =
+        apolloClient.query(GetPokedexGlobalDataQuery()).execute().data!!.toResponseModel()
 
     override suspend fun getPokemonList(
         limit: Int,
