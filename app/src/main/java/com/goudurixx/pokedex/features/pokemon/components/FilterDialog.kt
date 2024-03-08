@@ -1,5 +1,6 @@
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.EaseInCubic
@@ -15,32 +16,34 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.RestoreFromTrash
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,11 +54,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,54 +75,8 @@ import com.goudurixx.pokedex.features.pokemon.models.ListFilterUiModel
 import com.goudurixx.pokedex.features.pokemon.models.RangeFilterItemUiModel
 import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
 import com.goudurixx.pokedex.features.pokemon.models.updateFilterList
+import kotlin.math.roundToInt
 
-@Composable
-private fun HomeScreen(modifier: Modifier = Modifier) {
-    var fabContainerState by remember { mutableStateOf(FabContainerState.Fab) }
-    var filterList by remember {
-        mutableStateOf(
-            listOf(
-                RangeFilterItemUiModel(FilterByParameter.ID, 0f..1000f, 0f..1000f),
-                RangeFilterItemUiModel(FilterByParameter.BASE_EXPERIENCE, 0f..400f, 0f..400f),
-                RangeFilterItemUiModel(FilterByParameter.ATTACK, 0f..255f, 0f..255f),
-                ListFilterUiModel<TypeUiModel>(
-                    FilterByParameter.TYPE,
-                    listOf(
-                        Pair(TypeUiModel(id = 1, "fire", TypeFire), false),
-                        Pair(TypeUiModel(id = 2, "water", TypeWater), false)
-                    )
-                ),
-                BooleanFilterUiModel(
-                    FilterByParameter.IS_LEGENDARY,
-                    false
-                ), //TODO CHECK THE THIRD STATE
-                BooleanFilterUiModel(
-                    FilterByParameter.IS_LEGENDARY,
-                    false
-                ), //TODO CHECK THE THIRD STATE
-            )
-        )
-    }
-
-
-    Box(
-        modifier = modifier
-            .fillMaxSize(),
-    ) {
-        HotContent()
-        FabContainer(
-            filterList = filterList,
-            onFilterListChange = {
-                filterList = it
-                Log.e("HomeScreen", "HomeScreen: $filterList")
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd),
-            containerState = fabContainerState,
-            onContainerStateChange = { newContainerState -> fabContainerState = newContainerState }
-        )
-    }
-}
 
 @Composable
 fun FabContainer(
@@ -126,6 +86,8 @@ fun FabContainer(
     onContainerStateChange: (FabContainerState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+
+    val isCompactdevice = (LocalConfiguration.current.screenWidthDp < 600.dp.value)
 
     val transition = updateTransition(containerState, label = "container transform")
     val animatedColor by transition.animateColor(
@@ -154,8 +116,8 @@ fun FabContainer(
         }
     ) { state ->
         when (state) {
-            FabContainerState.Fab -> 22.dp
-            FabContainerState.Fullscreen -> 8.dp
+            FabContainerState.Fab -> 16.dp
+            FabContainerState.Fullscreen -> if (isCompactdevice) 0.dp else 16.dp
         }
     }
     val elevation by transition.animateDp(
@@ -184,14 +146,34 @@ fun FabContainer(
     ) { state ->
         when (state) {
             FabContainerState.Fab -> 16.dp
-            FabContainerState.Fullscreen -> 16.dp
+            FabContainerState.Fullscreen -> if (isCompactdevice) 0.dp else 16.dp
         }
     }
+
+    AnimatedVisibility(
+        visible = containerState == FabContainerState.Fullscreen,
+        modifier = Modifier.fillMaxSize(),
+        enter = fadeIn(),
+        exit = fadeOut()
+    )
+    {
+        Box(
+            Modifier
+
+                .background(Color.Black.copy(0.5f))
+                .pointerInput(Unit) {
+                    detectTapGestures {
+                        onContainerStateChange(FabContainerState.Fab)
+                    }
+                }
+        )
+    }
+
 
     transition.AnimatedContent(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .padding(start = padding, end = padding, bottom = padding)
+            .padding(start = padding, end = padding, bottom = padding, top = padding)
             .shadow(
                 elevation = elevation,
                 shape = RoundedCornerShape(cornerRadius)
@@ -223,20 +205,19 @@ fun FabContainer(
             }
 
             FabContainerState.Fullscreen -> {
-                val density = LocalDensity.current
-
                 FilterContent(
                     filterList = filterList,
                     onFilterListChange = onFilterListChange,
                     onDismiss = { onContainerStateChange(FabContainerState.Fab) },
                     modifier = Modifier
+                        .widthIn(max = 600.dp)
+                        .fillMaxSize()
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterContent(
     filterList: List<BaseFilterItemUiModel>,
@@ -247,142 +228,171 @@ fun FilterContent(
 
     LazyColumn(
         modifier = modifier
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.surface),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(8.dp)),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(16.dp)
     ) {
-       item {
+        item {
+            filterList.forEachIndexed { index, filterItem ->
+
+                when (filterItem) {
+                    is RangeFilterItemUiModel -> {
+                        RangeSliderItem(
+                            filterItem = filterItem,
+                            index = index,
+                            filterList = filterList,
+                            onFilterListChange = onFilterListChange,
+                        )
+                    }
+
+                    is ListFilterUiModel<*> -> {
+                        Text(
+                            text = filterItem.type.parameterName,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            filterItem.list.forEachIndexed { index, it ->
+                                if (it.first is TypeUiModel) {
+                                    val type = it.first as TypeUiModel
+                                    TextButton(
+                                        onClick = {
+                                            onFilterListChange(
+                                                filterList.updateFilterList(
+                                                    index,
+                                                    filterItem.updateList(
+                                                        filterItem.list.indexOf(it),
+                                                        filterItem.list[index].second
+                                                    )
+                                                )
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = type.color),
+                                        border = if (filterItem.list[index].second) BorderStroke(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.onSurface
+                                        ) else null,
+                                    ) {
+                                        Text(
+                                            text = type.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    is BooleanFilterUiModel -> {
+                        Row(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = filterItem.type.parameterName,
+                                modifier = Modifier.weight(1f)
+                            )
+                            SingleChoiceBooleanButton(
+                                value = filterItem.value,
+                                onValueChange = {
+                                    onFilterListChange(
+                                        filterList.updateFilterList(
+                                            index,
+                                            filterItem.copy(value = it)
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                OutlinedButton(
+                    onClick = {
+                        onDismiss()
+                        Log.e("FilterContent", "FilterContent: $filterList")
+                    },
+                    modifier = Modifier
+                ) {
+                    Text(
+                        text = "Dismiss"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RangeSliderItem(
+    filterItem: RangeFilterItemUiModel,
+    index: Int,
+    filterList: List<BaseFilterItemUiModel>,
+    onFilterListChange: (List<BaseFilterItemUiModel>) -> Unit
+) {
+    Column() {
+        Text(
+            text = filterItem.type.parameterName,
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        RangeSlider(
+            value = filterItem.value,
+            onValueChange = { range ->
+                onFilterListChange(
+                    filterList.updateFilterList(
+                        index,
+                        filterItem.copy(value = range)
+                    )
+                )
+            },
+            steps = filterItem.steps,
+            valueRange = filterItem.range,
+        )
+        Row(Modifier.fillMaxWidth()) {
             Text(
-                text = "Filter",
+                text = filterItem.value.start.roundToInt().toString(),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = filterItem.value.endInclusive.roundToInt().toString(),
                 style = MaterialTheme.typography.titleMedium,
             )
         }
-       item{
-           filterList.forEachIndexed { index, filterItem ->
+    }
+}
 
-               when (filterItem) {
-                   is RangeFilterItemUiModel -> {
-                       Column {
-                           Text(
-                               text = filterItem.type.parameterName + " " + filterItem.value.start.toInt() + " - " + filterItem.value.endInclusive.toInt(),
-                               style = MaterialTheme.typography.titleMedium,
-                           )
-                           RangeSlider(
-                               value = filterItem.value,
-                               onValueChange = { range ->
-                                   onFilterListChange(
-                                       filterList.updateFilterList(
-                                           index,
-                                           filterItem.copy(value = range)
-                                       )
-                                   )
-                               },
-                               steps = filterItem.steps,
-                               valueRange = filterItem.range,
-                           )
-                       }
-                   }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SingleChoiceBooleanButton(value: Boolean?, onValueChange: (Boolean?) -> Unit) {
 
-                   is ListFilterUiModel<*> -> {
-                       Text(
-                           text = filterItem.type.parameterName,
-                           style = MaterialTheme.typography.titleMedium,
-                       )
-                       Row {
-                           filterItem.list.forEachIndexed { index, it ->
-                               if (it.first is TypeUiModel) {
-                                   val type = it.first as TypeUiModel
-                                   TextButton(
-                                       onClick = {
-                                           onFilterListChange(
-                                               filterList.updateFilterList(
-                                                   index,
-                                                   filterItem.updateList(
-                                                       filterItem.list.indexOf(it),
-                                                       filterItem.list[index].second
-                                                   )
-                                               )
-                                           )
-                                       },
-                                       colors = ButtonDefaults.buttonColors(containerColor = type.color),
-                                       border = if (filterItem.list[index].second) BorderStroke(
-                                           2.dp,
-                                           MaterialTheme.colorScheme.onSurface
-                                       ) else null,
-                                   ) {
-                                       Text(
-                                           text = type.name,
-                                           style = MaterialTheme.typography.titleMedium,
-                                       )
-                                   }
-                               }
-                           }
-                       }
-                   }
-
-                   is BooleanFilterUiModel -> {
-                       Row {
-                           Text(text = filterItem.type.parameterName)
-                           SingleChoiceSegmentedButtonRow(
-                           ) {
-                               IconButton(onClick =
-                               {
-                                   onFilterListChange(
-                                       filterList.updateFilterList(
-                                           index,
-                                           filterItem.copy(value = null)
-                                       )
-                                   )
-                               }
-                               ) {
-                                   Icon(
-                                       imageVector = Icons.Default.RestoreFromTrash,
-                                       contentDescription = null
-                                   )
-                               }
-                               IconButton(onClick = {
-                                   onFilterListChange(
-                                       filterList.updateFilterList(
-                                           index,
-                                           filterItem.copy(value = true)
-                                       )
-                                   )
-                               }) {
-                                   Icon(
-                                       imageVector = Icons.Default.Done,
-                                       contentDescription = null
-                                   )
-                               }
-                               IconButton(onClick = {
-                                   onFilterListChange(
-                                       filterList.updateFilterList(
-                                           index,
-                                           filterItem.copy(value = false)
-                                       )
-                                   )
-                               }) {
-                                   Icon(
-                                       imageVector = Icons.Default.Close,
-                                       contentDescription = null
-                                   )
-                               }
-                           }
-                       }
-                   }
-               }
-           }
-       }
-        item{
-            TextButton(
-                onClick = {
-                    onDismiss()
-                    Log.e("FilterContent", "FilterContent: $filterList")
-                }
-            ) {
-                Text(
-                    text = "Dismiss"
-                )
-            }
+    SingleChoiceSegmentedButtonRow {
+        SegmentedButton(
+            selected = value == true,
+            onClick = { onValueChange(if (value == true) null else true) },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+        ) {
+            Text(text = "Yes")
+        }
+        SegmentedButton(
+            selected = value == false,
+            onClick = { onValueChange(if (value == false) null else false) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+        ) {
+            Text(text = "No")
         }
     }
 }
@@ -451,12 +461,10 @@ private fun HotTake(hotTake: String) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            hotTake?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
+            Text(
+                text = hotTake,
+                style = MaterialTheme.typography.titleMedium,
+            )
             Text(
                 modifier = Modifier
                     .padding(top = 6.dp),
@@ -476,8 +484,8 @@ private fun Fab(
     Box(
         modifier = modifier
             .defaultMinSize(
-                minWidth = 76.dp,
-                minHeight = 76.dp,
+                minWidth = 56.dp,
+                minHeight = 56.dp,
             )
             .clickable(
                 onClick = onClick,
@@ -496,10 +504,54 @@ enum class FabContainerState {
     Fullscreen,
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 700)
 @Composable
 private fun Preview() {
     PokedexTheme {
-        HomeScreen()
+        var fabContainerState by remember { mutableStateOf(FabContainerState.Fullscreen) }
+        var filterList by remember {
+            mutableStateOf(
+                listOf(
+                    RangeFilterItemUiModel(FilterByParameter.ID, 0f..1000f, 0f..1000f),
+                    RangeFilterItemUiModel(FilterByParameter.BASE_EXPERIENCE, 0f..400f, 0f..400f),
+                    RangeFilterItemUiModel(FilterByParameter.ATTACK, 0f..255f, 0f..255f),
+                    ListFilterUiModel<TypeUiModel>(
+                        FilterByParameter.TYPE,
+                        listOf(
+                            Pair(TypeUiModel(id = 1, "fire", TypeFire), false),
+                            Pair(TypeUiModel(id = 2, "water", TypeWater), false)
+                        )
+                    ),
+                    BooleanFilterUiModel(
+                        FilterByParameter.IS_LEGENDARY,
+                        false
+                    ), //TODO CHECK THE THIRD STATE
+                    BooleanFilterUiModel(
+                        FilterByParameter.IS_LEGENDARY,
+                        false
+                    ), //TODO CHECK THE THIRD STATE
+                )
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+        ) {
+            HotContent()
+            FabContainer(
+                filterList = filterList,
+                onFilterListChange = {
+                    filterList = it
+                    Log.e("HomeScreen", "HomeScreen: $filterList")
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd),
+                containerState = fabContainerState,
+                onContainerStateChange = { newContainerState ->
+                    fabContainerState = newContainerState
+                }
+            )
+        }
     }
 }
