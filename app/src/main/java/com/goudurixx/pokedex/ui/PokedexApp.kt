@@ -112,7 +112,6 @@ fun PokedexApp(
                     onNavigateToDestination = appState::navigateToTopLevelDestination,
                     currentDestination = appState.currentDestination,
                     modifier = Modifier
-                        .testTag("NiaNavRail")
                         .safeDrawingPadding(),
                 )
             }
@@ -142,13 +141,13 @@ private fun PokedexNavRail(
                 onClick = { onNavigateToDestination(destination) },
                 icon = {
                     Icon(
-                        imageVector = destination.selectedIcon,
+                        imageVector = destination.unselectedIcon,
                         contentDescription = null,
                     )
                 },
                 selectedIcon = {
                     Icon(
-                        imageVector = destination.unselectedIcon,
+                        imageVector = destination.selectedIcon,
                         contentDescription = null,
                     )
                 },
