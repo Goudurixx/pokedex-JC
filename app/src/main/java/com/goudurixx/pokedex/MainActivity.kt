@@ -7,8 +7,6 @@ import android.view.animation.AnticipateInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,24 +15,18 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.goudurixx.pokedex.core.data.util.NetworkMonitor
-import com.goudurixx.pokedex.ui.PokedexApp
+import com.goudurixx.pokedex.core.ui.PokedexApp
 import com.goudurixx.pokedex.core.ui.theme.PokedexTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var networkMonitor: NetworkMonitor
-
 
     private val viewModel: MainActivityViewModel by viewModels()
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -90,10 +82,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             PokedexTheme {
-                PokedexApp(
-                    networkMonitor = networkMonitor,
-                    windowSizeClass =  calculateWindowSizeClass(this)
-                )
+                PokedexApp()
             }
         }
     }

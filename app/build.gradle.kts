@@ -79,7 +79,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
 
     // material icons
-    implementation("androidx.compose.material:material-icons-extended:1.6.2")
+    implementation("androidx.compose.material:material-icons-extended:1.6.1")
 
     //material 3
     implementation("androidx.compose.material3:material3:$material3")
@@ -136,8 +136,6 @@ dependencies {
     kapt("androidx.room:room-compiler:$room")
     implementation ("androidx.room:room-ktx:$room")
     implementation ("androidx.room:room-paging:$room")
-
-    implementation("com.google.code.gson:gson:2.10")
 
 
 

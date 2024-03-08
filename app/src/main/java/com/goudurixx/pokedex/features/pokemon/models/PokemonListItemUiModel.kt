@@ -1,7 +1,6 @@
 package com.goudurixx.pokedex.features.pokemon.models
 
 import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
-import com.goudurixx.pokedex.core.ui.theme.PokemonColor
 import com.goudurixx.pokedex.data.models.PokemonListItemModel
 
 data class PokemonListItemUiModel(
@@ -13,8 +12,7 @@ data class PokemonListItemUiModel(
     val height: Int? = null,
     val weight: Int? = null,
     val baseExperience: Int? = null,
-    val averageStat: Double? = null,
-    val color: PokemonColor
+    val averageStat: Double? = null
 )
 
 fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiModel(
@@ -26,8 +24,7 @@ fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiMode
     height = height,
     weight = weight,
     baseExperience = baseExperience,
-    averageStat = averageStat,
-    color = colorId?.let { PokemonColor.entries.getOrNull(it) } ?: PokemonColor.UNKNOWN
+    averageStat = averageStat
 )
 
 fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
@@ -39,6 +36,5 @@ fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
     height = height,
     weight = weight,
     baseExperience = baseExperience,
-    averageStat = averageStat,
-    color = colorId?.let { PokemonColor.entries.getOrNull(it) } ?: PokemonColor.UNKNOWN
+    averageStat = averageStat
 )

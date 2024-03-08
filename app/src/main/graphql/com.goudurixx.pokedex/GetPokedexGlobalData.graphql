@@ -16,17 +16,6 @@ query getPokedexGlobalData {
     pokemon_v2_pokemon_aggregate {
         aggregate {
             count
-            max {
-                base_experience
-                height
-                id
-                weight
-            }
-            min {
-                height
-                weight
-                base_experience
-            }
         }
     }
     pokemon_v2_pokemonstat(distinct_on: stat_id) {

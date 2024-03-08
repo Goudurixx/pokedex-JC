@@ -2,7 +2,6 @@ package com.goudurixx.pokedex.features.pokemon
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
@@ -61,6 +60,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -89,6 +89,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,14 +107,17 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.goudurixx.pokedex.R
-import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.ui.component.radarChart.RadarChart
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.NetLinesStyle
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.Polygon
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.PolygonStyle
+import com.goudurixx.pokedex.core.ui.theme.PokedexTheme
+import com.goudurixx.pokedex.core.ui.theme.TypePsychic
 import com.goudurixx.pokedex.core.ui.utils.getContrastingColor
+import com.goudurixx.pokedex.features.pokemon.models.AbilityUiModel
 import com.goudurixx.pokedex.features.pokemon.models.EvolutionChainSpeciesUiModel
 import com.goudurixx.pokedex.features.pokemon.models.PokemonDetailUiModel
+import com.goudurixx.pokedex.features.pokemon.models.SpritesUiModel
 import com.goudurixx.pokedex.features.pokemon.models.StatUiModel
 import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
 import kotlinx.coroutines.delay
@@ -130,11 +134,9 @@ fun PokemonDetailRoute(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val appDataUiState by viewModel.appDataUiState.collectAsStateWithLifecycle()
     val speciesUiState by viewModel.speciesUiState.collectAsStateWithLifecycle()
     PokemonDetailScreen(
         uiState = uiState,
-        appDataUiState = appDataUiState,
         speciesUiState = speciesUiState,
         onBackClick = onBackClick,
         navigateToPokemonDetail = navigateToPokemonDetail,
@@ -147,12 +149,11 @@ fun PokemonDetailRoute(
 @Composable
 fun PokemonDetailScreen(
     uiState: PokemonDetailUiState,
-    appDataUiState: AppDataUiState,
     speciesUiState: PokemonSpeciesUiState,
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
     pokemonId: Int?,
-    backgroundColor: Int,
+    backgroundColor: Int
 ) {
     var pokemon by remember {
         mutableStateOf(
@@ -273,7 +274,6 @@ fun PokemonDetailScreen(
                 )
                 StatisticsContentWrapper(
                     stats = pokemon.stats,
-                    appDataUiState = appDataUiState,
                     modifier = Modifier
                         .heightIn(min = 200.dp, max = 300.dp)
                         .fillMaxWidth()
@@ -529,11 +529,7 @@ fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
 
 
 @Composable
-fun StatisticsContentWrapper(
-    stats: List<StatUiModel>,
-    appDataUiState: AppDataUiState,
-    modifier: Modifier,
-) {
+fun StatisticsContentWrapper(stats: List<StatUiModel>, modifier: Modifier) {
 
     var showBarChart by remember { mutableStateOf(true) }
 
@@ -571,30 +567,16 @@ fun StatisticsContentWrapper(
                 }
             }
         }
-        if(appDataUiState is AppDataUiState.Success){
-            if ((!showBarChart)) {
-                StatisticsContentAsBarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            } else {
-                StatisticsContentAsRadarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
+        if ((!showBarChart)) {
+            StatisticsContentAsBarChart(stats = stats, modifier = Modifier.padding(8.dp))
+        } else {
+            StatisticsContentAsRadarChart(stats = stats, modifier = Modifier.padding(8.dp))
         }
     }
 }
 
 @Composable
-fun StatisticsContentAsBarChart(
-    stats: List<StatUiModel>,
-    globalStatList: GlobalStatList,
-    modifier: Modifier,
-) {
+fun StatisticsContentAsBarChart(stats: List<StatUiModel>, modifier: Modifier) {
     var beginAnimation by rememberSaveable {
         mutableStateOf(false)
     }
@@ -648,11 +630,7 @@ fun StatisticsContentAsBarChart(
 }
 
 @Composable
-fun StatisticsContentAsRadarChart(
-    stats: List<StatUiModel>,
-    globalStatList: GlobalStatList,
-    modifier: Modifier,
-) {
+fun StatisticsContentAsRadarChart(stats: List<StatUiModel>, modifier: Modifier) {
     var beginAnimation by rememberSaveable {
         mutableStateOf(false)
     }
@@ -663,54 +641,13 @@ fun StatisticsContentAsRadarChart(
             label = "transition of the statistics ${stat.statId}"
         )
     }
+    //TODO MOVE THAT IN CALL AT APP LAUNCH
+    val averageStat = listOf<Double>(71.27, 81.58, 75.24, 73.65, 73.00, 71.16)
 
     LaunchedEffect(Unit) {
         beginAnimation = true
     }
 
-    val minPolygon = Polygon(
-        values = globalStatList.statList.map { it.min.toDouble() },
-        unit = "",
-        style = PolygonStyle(
-            fillColor = Color.Transparent,
-            fillColorAlpha = 0f,
-            borderColor = Color.Green,
-            borderColorAlpha = 0.9f,
-            borderStrokeWidth = 1f,
-            borderStrokeCap = StrokeCap.Butt
-        )
-    )
-    val avgPolygon = remember {
-        Polygon(
-            values = globalStatList.statList.map { it.avg },
-            unit = "",
-            style = PolygonStyle(
-                fillColor = Color.Transparent,
-                fillColorAlpha = 0f,
-                borderColor = Color.Blue,
-                borderColorAlpha = 0.9f,
-                borderStrokeWidth = 1f,
-                borderStrokeCap = StrokeCap.Butt
-            )
-        )
-    }
-    val maxPolygon = remember {
-        Polygon(
-            values = globalStatList.statList.map {
-                Log.e("max", it.max.toString())
-                it.max.toDouble()
-            },
-            unit = "",
-            style = PolygonStyle(
-                fillColor = Color.Transparent,
-                fillColorAlpha = 0f,
-                borderColor = Color.Red,
-                borderColorAlpha = 0.9f,
-                borderStrokeWidth = 1f,
-                borderStrokeCap = StrokeCap.Butt
-            )
-        )
-    }
     RadarChart(
         radarLabels = stats.mapIndexed { index, it ->
             it.statName.capitalize(Locale.ROOT) + "\n" + String.format(
@@ -730,16 +667,26 @@ fun StatisticsContentAsRadarChart(
         scalarValue = 255.0,
         scalarValuesStyle = MaterialTheme.typography.labelSmall.copy(color = Color.Transparent),
         polygons = listOf(
-            minPolygon,
-            avgPolygon,
-            maxPolygon,
+            Polygon(
+                values = averageStat,
+                unit = "",
+                style = PolygonStyle(
+                    fillColor = MaterialTheme.colorScheme.secondary,
+                    fillColorAlpha = 0.1f,
+                    borderColor = MaterialTheme.colorScheme.errorContainer,
+                    borderColorAlpha = 0.5f,
+                    borderStrokeWidth = 1f,
+                    borderStrokeCap = StrokeCap.Butt
+                )
+            ),
             Polygon(
                 values = transition.map { it.value.toDouble() },
+                unit = "",
                 style = PolygonStyle(
                     fillColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     fillColorAlpha = 0.5f,
                     borderColor = MaterialTheme.colorScheme.surfaceTint,
-                    borderColorAlpha = 0.7f,
+                    borderColorAlpha = 0.5f,
                     borderStrokeWidth = 2f,
                     borderStrokeCap = StrokeCap.Butt
                 )
@@ -880,72 +827,71 @@ fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Un
     }
 }
 
-//@Preview
-//@Composable
-//fun PokemonDetailScreenPreview() {
-//    CompositionLocalProvider(LocalContext provides LocalContext.current) {
-//        PokedexTheme {
-//            val title by remember {
-//                mutableStateOf("Pachyradjah N°0879")
-//            }
-//            val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
-//            val dominantColor by remember { mutableIntStateOf(backgroundColor.toArgb()) }
-//
-//            val statList = listOf(
-//                Pair("PV", 92),
-//                Pair("Attaque", 130),
-//                Pair("Défense", 115),
-//                Pair("Attaque Spéciale", 80),
-//                Pair("Défense Spéciale", 85),
-//                Pair("Vitesse", 55)
-//            )
-//
-//            val pokemonDetail = PokemonDetailUiModel(
-//                id = 879,
-//                name = "pachyradjah",
-//                weight = 650,
-//                height = 3,
-//                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/879.png",
-//                cries = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/cries/879.mp3",
-//                abilities = listOf(
-//                    AbilityUiModel("Régé-Force", isHidden = false, slot = 1),
-//                    AbilityUiModel("Fermeté", isHidden = false, slot = 2)
-//                ),
-//                types = listOf(
-//                    TypeUiModel(id = 1, name = "Psychic", color = TypePsychic),
-//                ),
-//                stats = statList.map { (name, value) ->
-//                    StatUiModel(
-//                        statName = name,
-//                        statId = statList.indexOfFirst { it.first == name } + 1,
-//                        value = value,
-//                        effort = 0,
-//                        color = when (name) {
-//                            "PV" -> Color(0xFFA8A878)
-//                            "Attaque" -> Color(0xFFEE8130)
-//                            "Défense" -> Color(0xFF6390F0)
-//                            "Attaque Spéciale" -> Color(0xFFF7D02C)
-//                            "Défense Spéciale" -> Color(0xFF96D9D6)
-//                            "Vitesse" -> Color(0xFFC5C5C5)
-//                            else -> Color.Black
-//                        }
-//                    )
-//                },
-//                sprites = SpritesUiModel(),
-//            )
-//            PokemonDetailScreen(
-//                uiState = PokemonDetailUiState.Loading,
-////                uiState = PokemonDetailUiState.Success(pokemonDetail),
-//                speciesUiState = PokemonSpeciesUiState.Loading,
-//                onBackClick = { /*TODO*/ },
-//                navigateToPokemonDetail = { _, _ -> },
-//                pokemonId = 879,
-//                backgroundColor = dominantColor,
-//                globalStatList = globalStatList
-//            )
-//        }
-//    }
-//}
+@Preview
+@Composable
+fun PokemonDetailScreenPreview() {
+    CompositionLocalProvider(LocalContext provides LocalContext.current) {
+        PokedexTheme {
+            val title by remember {
+                mutableStateOf("Pachyradjah N°0879")
+            }
+            val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+            val dominantColor by remember { mutableIntStateOf(backgroundColor.toArgb()) }
+
+            val statList = listOf(
+                Pair("PV", 92),
+                Pair("Attaque", 130),
+                Pair("Défense", 115),
+                Pair("Attaque Spéciale", 80),
+                Pair("Défense Spéciale", 85),
+                Pair("Vitesse", 55)
+            )
+
+            val pokemonDetail = PokemonDetailUiModel(
+                id = 879,
+                name = "pachyradjah",
+                weight = 650,
+                height = 3,
+                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/879.png",
+                cries = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/cries/879.mp3",
+                abilities = listOf(
+                    AbilityUiModel("Régé-Force", isHidden = false, slot = 1),
+                    AbilityUiModel("Fermeté", isHidden = false, slot = 2)
+                ),
+                types = listOf(
+                    TypeUiModel(id = 1, name = "Psychic", color = TypePsychic),
+                ),
+                stats = statList.map { (name, value) ->
+                    StatUiModel(
+                        statName = name,
+                        statId = statList.indexOfFirst { it.first == name } + 1,
+                        value = value,
+                        effort = 0,
+                        color = when (name) {
+                            "PV" -> Color(0xFFA8A878)
+                            "Attaque" -> Color(0xFFEE8130)
+                            "Défense" -> Color(0xFF6390F0)
+                            "Attaque Spéciale" -> Color(0xFFF7D02C)
+                            "Défense Spéciale" -> Color(0xFF96D9D6)
+                            "Vitesse" -> Color(0xFFC5C5C5)
+                            else -> Color.Black
+                        }
+                    )
+                },
+                sprites = SpritesUiModel(),
+            )
+            PokemonDetailScreen(
+                uiState = PokemonDetailUiState.Loading,
+//                uiState = PokemonDetailUiState.Success(pokemonDetail),
+                speciesUiState = PokemonSpeciesUiState.Loading,
+                onBackClick = { /*TODO*/ },
+                navigateToPokemonDetail = { _, _ -> },
+                backgroundColor = dominantColor,
+                pokemonId = 879
+            )
+        }
+    }
+}
 
 @Composable
 fun MyIndicator(modifier: Modifier = Modifier) {
@@ -965,7 +911,8 @@ fun MyIndicator(modifier: Modifier = Modifier) {
             .graphicsLayer {
                 translationY = -size.height / 2
             }
-            .scale(-1f, -1f),
+            .scale(-1f, -1f)
+        ,
         strokeWidth = 10.dp,
         trackColor = Color.LightGray,
         strokeCap = StrokeCap.Round

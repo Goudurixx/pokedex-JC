@@ -1,5 +1,5 @@
-query PokemonGetPagedList($_limit: Int = 1, $_offset: Int, $_order_by: [pokemon_v2_pokemon_order_by!] = {id: asc}, $_where: [pokemon_v2_pokemon_bool_exp!] = {id: {_gte: 0}}) {
-    pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by, where: {_and: $_where}) {
+query PokemonGetPagedList($_limit: Int, $_offset: Int, $_order_by: [pokemon_v2_pokemon_order_by!] = {id:asc}, $_where: [pokemon_v2_pokemon_bool_exp!] = {id:{_gte:0}}) {
+    pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by, where : {_and:$_where}) {
         name
         id
         height
@@ -11,9 +11,6 @@ query PokemonGetPagedList($_limit: Int = 1, $_offset: Int, $_order_by: [pokemon_
                     base_stat
                 }
             }
-        }
-        pokemon_v2_pokemonspecy{
-            pokemon_v2_pokemoncolor{id}
         }
     }
 }

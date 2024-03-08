@@ -27,7 +27,7 @@ data class PokemonResponse(
     val moves: List<MoveResponse>,
     val name: String,
     val order: Int,
-//    val past_abilities: List<AbilityResponse>?,
+    val past_abilities: List<AbilityResponse>?,
     val past_types: List<PastTypeResponse>?,
     val species: SpeciesResponse,
     val sprites: SpritesResponse,
