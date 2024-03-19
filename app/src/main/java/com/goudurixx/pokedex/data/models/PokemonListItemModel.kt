@@ -14,7 +14,9 @@ data class PokemonListItemModel(
     val weight : Int? = null,
     val baseExperience : Int? = null,
     val averageStat: Double? = null,
-    val colorId: Int? = null
+    val colorId: Int? = null,
+    val generationId: Int? = null,
+    val generationName: String? = null
 )
 
 fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
@@ -29,7 +31,9 @@ fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
         weight = weight,
         baseExperience = baseExperience,
         averageStat = averageStat,
-        colorId = colorId
+        colorId = colorId,
+        generationId = generationId,
+        generationName = generationName
     )
 }
 
@@ -44,6 +48,8 @@ fun PokemonDaoModel.toDataModel(): PokemonListItemModel {
         weight = weight,
         baseExperience = baseExperience,
         averageStat = averageStat,
-        colorId = colorId
+        colorId = colorId,
+        generationId = generationId,
+        generationName = generationName
     )
 }

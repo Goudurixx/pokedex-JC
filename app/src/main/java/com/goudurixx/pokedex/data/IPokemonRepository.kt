@@ -13,7 +13,7 @@ interface IPokemonRepository {
 
     val appData: Flow<PokedexGlobalDataModel>
 
-    fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>) :  Flow<PagingData<PokemonListItemModel>>
+    fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>? = null) :  Flow<PagingData<PokemonListItemModel>>
     fun getPokemonCompletion(query: String) : Flow<List<PokemonListItemModel>>
     fun getPokemonDetail(id: Int) : Flow<PokemonModel>
 

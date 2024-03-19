@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.data.repositories
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -34,23 +35,20 @@ class PokemonRepository @Inject constructor(
     private var filterBy: List<FilterBy>? = null
     private var pager: Pager<Int, PokemonDaoModel>? = null
 
-    override val appData: Flow<PokedexGlobalDataModel> = PokedexGlobalDataRemoteMediator(remoteDataSource, pokedexDatabase).load()
+    override val appData: Flow<PokedexGlobalDataModel> =
+        PokedexGlobalDataRemoteMediator(remoteDataSource, pokedexDatabase).load()
 
     override fun getPokemonPagerList(
         orderBy: OrderBy?,
-        filterBy: List<FilterBy>
+        filterBy: List<FilterBy>?
     ): Flow<PagingData<PokemonListItemModel>> {
-        updatePaginationParams(orderBy, filterBy)
-        if (pager == null) {
-            pager = createPager()
-        }
-        return pager!!.flow.map { pagingData ->
+        return updatePaginationParams(orderBy, filterBy).flow.map { pagingData ->
             pagingData.map { it.toDataModel() }
         }
     }
 
     override fun getPokemonCompletion(query: String): Flow<List<PokemonListItemModel>> = flow {
-        emit(remoteDataSource.getPokemonSearchCompletion(query).toDataModel().results)
+        emit(remoteDataSource.getPokemonList(query = query).toDataModel().results)
     }
 
     override fun getPokemonDetail(id: Int): Flow<PokemonModel> = flow {
@@ -63,6 +61,8 @@ class PokemonRepository @Inject constructor(
 
     @OptIn(ExperimentalPagingApi::class)
     private fun createPager(): Pager<Int, PokemonDaoModel> {
+        val pagingKey = orderBy.toString() + filterBy.toString()
+        Log.e("PokemonRepository", "createPager with pagingKey: $pagingKey")
         return Pager(
             config = PagingConfig(
                 pageSize = 50,
@@ -72,16 +72,33 @@ class PokemonRepository @Inject constructor(
             remoteMediator = PokemonRemoteMediator(
                 orderBy = orderBy,
                 filterBy = filterBy,
+                pagingKey= pagingKey,
                 remoteDataSource = remoteDataSource,
                 pokedexDatabase = pokedexDatabase
             ),
-            pagingSourceFactory = { localDataSource.loadAllPokemonsPaged() }
+            pagingSourceFactory = { localDataSource.loadAllPokemonsPaged(pagingKey) }
         )
     }
 
-    private fun updatePaginationParams(orderBy: OrderBy?, filterBy: List<FilterBy>?) {
-        this.orderBy = orderBy
-        this.filterBy = filterBy
-        pager = createPager() // recreate the pager with the new orderBy parameter
+    private fun updatePaginationParams(
+        orderBy: OrderBy?,
+        filterBy: List<FilterBy>?
+    ): Pager<Int, PokemonDaoModel> {
+        Log.e(
+            "PokemonRepository",
+            "updatePaginationParams with orderBy: $orderBy and filterBy: $filterBy"
+        )
+        return if (this.filterBy != filterBy || this.orderBy != orderBy || pager == null) {
+            Log.e("PokemonRepository", "updatePaginationParams with new params : \n" +
+                    "orderBy:  ${this.orderBy} VS $orderBy \n" +
+                    "filterBy:  ${this.filterBy} VS $filterBy \n" +
+                    "pager: $pager \n")
+            if (this.filterBy != filterBy) this.filterBy = filterBy
+            if (this.orderBy != orderBy) this.orderBy = orderBy
+            createPager()
+        } else {
+            Log.e("PokemonRepository", "updatePaginationParams with same params")
+            pager!!
+        }
     }
 }

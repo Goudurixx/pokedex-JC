@@ -12,7 +12,8 @@ data class EvolutionChainSpeciesModel(
     val id : Int,
     val evolveFromId: Int?,
     val name: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val color : Int?
 )
 
 fun EvolutionChainResponse.toDataModel() = EvolutionChainModel(
@@ -27,5 +28,6 @@ fun EvolutionChainSpeciesResponse.toDataModel() = EvolutionChainSpeciesModel(
     id = id,
     evolveFromId = evolves_from_species_id,
     name = name,
-    imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png"
+    imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+    color = color
 )

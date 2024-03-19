@@ -8,5 +8,5 @@ import javax.inject.Inject
 class PokemonLocalDataSource @Inject constructor(
     private val pokemonDao: PokemonDao
 ){
-    fun loadAllPokemonsPaged() : PagingSource<Int, PokemonDaoModel> = pokemonDao.pagingSource()
+    fun loadAllPokemonsPaged(key : String) : PagingSource<Int, PokemonDaoModel> = pokemonDao.pagingSource(key)
 }

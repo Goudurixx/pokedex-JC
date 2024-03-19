@@ -139,6 +139,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.10")
 
+    implementation("androidx.compose.animation:animation-graphics-android:1.6.3")
 
 
 }

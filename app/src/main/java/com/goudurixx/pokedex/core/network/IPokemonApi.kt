@@ -12,12 +12,11 @@ interface IPokemonApi {
     suspend fun getPokedexGlobalData(): PokedexGlobalDataReponse
 
     suspend fun getPokemonList(
-        limit: Int, offset: Int,
+        limit: Int?, offset: Int?, query: String?,
         orderByParameters: OrderByParametersNetworkModel?,
         whereParameters: WhereParametersNetworkModel?
     ): PokemonListResponse
 
-    suspend fun getPokemonSearchCompletion(query: String): PokemonListResponse
     suspend fun getPokemonDetail(id: Int): PokemonResponse
     suspend fun getPokemonEvolutionChain(id: Int): EvolutionChainResponse
 }

@@ -9,6 +9,8 @@ import com.goudurixx.pokedex.data.models.PokemonListItemModel
 data class PokemonDaoModel(
     @ColumnInfo val id: Int,
     @PrimaryKey(autoGenerate = false) val index: Int,
+    @ColumnInfo(name = "paging_key") val key: String,
+    @ColumnInfo(name = "last_updated") val lastUpdated: Long,
     @ColumnInfo val name: String,
     @ColumnInfo val url: String?,
     @ColumnInfo val imageUrl: String,
@@ -16,10 +18,12 @@ data class PokemonDaoModel(
     @ColumnInfo val weight: Int? = null,
     @ColumnInfo val baseExperience: Int? = null,
     @ColumnInfo val averageStat: Double? = null,
-    @ColumnInfo val colorId: Int? = null
+    @ColumnInfo val colorId: Int? = null,
+    @ColumnInfo val generationId: Int? = null,
+    @ColumnInfo val generationName: String? = null
 )
 
-fun PokemonListItemModel.toDaoModel(index: Int) = PokemonDaoModel(
+fun PokemonListItemModel.toDaoModel(index: Int, key: String) = PokemonDaoModel(
     id = id,
     name = name,
     url = url,
@@ -29,5 +33,9 @@ fun PokemonListItemModel.toDaoModel(index: Int) = PokemonDaoModel(
     baseExperience = baseExperience,
     averageStat = averageStat,
     colorId = colorId,
-    index = index
+    generationId = generationId,
+    generationName = generationName,
+    index = index,
+    key = key,
+    lastUpdated = System.currentTimeMillis()
 )

@@ -3,7 +3,6 @@ package com.goudurixx.pokedex.features.pokemon
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.utils.Result
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
@@ -64,7 +63,7 @@ class PokemonDetailViewModel @Inject constructor(
         when (it) {
             is Result.Loading -> PokemonDetailUiState.Loading
             is Result.Success -> {
-                PokemonDetailUiState.Success(it.data.toUiModel())
+                PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
             }
 
             is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)

@@ -128,7 +128,7 @@ class PokemonListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val appData = pokemonRepository.appData.asResultWithLoading().map {
+            pokemonRepository.appData.asResultWithLoading().map {
                 when (it) {
                     Result.Loading -> {
                         AppDataUiState.Loading
@@ -146,8 +146,6 @@ class PokemonListViewModel @Inject constructor(
                                     it.data.minBaseExperience.toFloat()..it.data.maxBaseExperience.toFloat(),
                                     it.data.minBaseExperience.toFloat()..it.data.maxBaseExperience.toFloat()
                                 ),
-//            RangeFilterItemUiModel(FilterByParameter.HP, 0f..255f, 0f..255f),
-//            RangeFilterItemUiModel(FilterByParameter.ATTACK, 0f..255f, 0f..255f),
                                 RangeFilterItemUiModel(
                                     FilterByParameter.HEIGHT,
                                     it.data.minHeight.toFloat()..it.data.maxHeight.toFloat(),
@@ -158,14 +156,6 @@ class PokemonListViewModel @Inject constructor(
                                     it.data.minWeight.toFloat()..it.data.maxWeight.toFloat(),
                                     it.data.minWeight.toFloat()..it.data.maxWeight.toFloat()
                                 ),
-//            BooleanFilterUiModel(FilterByParameter.IS_DEFAULT, false),
-//            ListFilterUiModel<TypeUiModel>(
-//                FilterByParameter.TYPE,
-//                listOf(
-//                    Pair(TypeUiModel(id = 1, "fire", TypeFire), false),
-//                    Pair(TypeUiModel(id = 2, "water", TypeWater), false)
-//                )
-//            ),
                                 BooleanFilterUiModel(
                                     FilterByParameter.IS_LEGENDARY,
                                     null

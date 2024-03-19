@@ -1,6 +1,5 @@
 package com.goudurixx.pokedex.features.pokemon.navigation
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -34,7 +33,8 @@ fun NavController.navigateToPokemonDetail(id: Int, color: Int? = null, navOption
 
 internal fun NavGraphBuilder.pokemonDetailScreen(
     onBackClick: () -> Unit,
-    navigateToPokemonDetail: (Int, Int?) -> Unit
+    navigateToPokemonDetail: (Int, Int?) -> Unit,
+    navigateToType: (Int, String) -> Unit
 ) {
     composable(
         route = "$pokemonDetailRoute$pokemonIdParam={$pokemonIdParam}$pokemonColorParam={$pokemonColorParam}",
@@ -47,12 +47,12 @@ internal fun NavGraphBuilder.pokemonDetailScreen(
     ) {
         val id = it.arguments?.getInt(pokemonIdParam)
         val color = it.arguments?.getInt(pokemonColorParam)
-        Log.e("PokemonDetailScreenNavigation", "color: $color")
         PokemonDetailRoute(
             onBackClick = onBackClick,
             pokemonId = id,
             backgroundColor = color,
-            navigateToPokemonDetail = { id, pokemonColor -> if(id != it.arguments?.getInt(pokemonIdParam)) navigateToPokemonDetail(id, pokemonColor) }
+            navigateToPokemonDetail = { id, pokemonColor -> if(id != it.arguments?.getInt(pokemonIdParam)) navigateToPokemonDetail(id, pokemonColor) },
+            navigateToType = { id, name -> navigateToType(id, name) }
         )
     }
 }

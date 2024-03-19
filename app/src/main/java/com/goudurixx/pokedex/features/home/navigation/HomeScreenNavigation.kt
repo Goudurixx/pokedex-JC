@@ -15,11 +15,15 @@ fun NavController.navigateToHome(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.homeScreen(
-    navigateToPokemonList : () -> Unit
+    navigateToPokemonList : () -> Unit,
+    navigateToPokemonDetail: (Int, Int) -> Unit,
+    navigateToType: (Int, String) -> Unit
 ) {
     composable(route = homeRoute) {
         HomeRoute(
-           navigateToPokemonList = navigateToPokemonList
+           navigateToPokemonList = navigateToPokemonList,
+              navigateToPokemonDetail = navigateToPokemonDetail,
+                navigateToType = navigateToType
         )
     }
 }

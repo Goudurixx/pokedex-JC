@@ -11,9 +11,10 @@ interface PokemonDao {
 
     @Upsert
     suspend fun upsertAll(pokemons: List<PokemonDaoModel>)
-    @Query("SELECT * FROM pokemon")
-    fun pagingSource(): PagingSource<Int, PokemonDaoModel>
 
-    @Query("DELETE FROM pokemon")
-    suspend fun clearAll()
+    @Query("SELECT * FROM pokemon WHERE paging_key = :key")
+    fun pagingSource(key: String): PagingSource<Int, PokemonDaoModel>
+
+    @Query("DELETE FROM pokemon WHERE paging_key = :key AND last_updated < :currentTime")
+    suspend fun clearAll(key: String, currentTime: Long)
 }

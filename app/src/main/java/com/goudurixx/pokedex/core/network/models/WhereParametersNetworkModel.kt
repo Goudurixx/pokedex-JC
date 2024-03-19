@@ -5,10 +5,12 @@ import com.goudurixx.pokedex.core.common.models.BooleanFilterValue
 import com.goudurixx.pokedex.core.common.models.FilterBy
 import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.common.models.IntRangeFilterValue
+import com.goudurixx.pokedex.core.common.models.ListFilterValue
 import com.goudurixx.pokedex.type.Int_comparison_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemon_bool_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemonspecies_bool_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_bool_exp
+import com.goudurixx.pokedex.type.Pokemon_v2_pokemontype_bool_exp
 
 data class WhereParametersNetworkModel(
     val parameters: List<Pokemon_v2_pokemon_bool_exp>
@@ -60,6 +62,11 @@ fun List<FilterBy>.toWhereParametersNetworkModel() = WhereParametersNetworkModel
                     Pokemon_v2_pokemonspecies_bool_exp(
                         is_legendary = (it.value as BooleanFilterValue).toFilterNetworkModel()
                     )
+                )
+            )
+            FilterByParameter.TYPE ->  Pokemon_v2_pokemon_bool_exp(
+                pokemon_v2_pokemontypes = Optional.present(
+                    Pokemon_v2_pokemontype_bool_exp(_and = (it.value as ListFilterValue<*>).toFilterNetworkModel())
                 )
             )
 

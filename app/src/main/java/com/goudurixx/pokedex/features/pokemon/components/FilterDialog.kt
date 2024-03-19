@@ -25,8 +25,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -159,7 +161,6 @@ fun FabContainer(
     {
         Box(
             Modifier
-
                 .background(Color.Black.copy(0.5f))
                 .pointerInput(Unit) {
                     detectTapGestures {
@@ -173,6 +174,8 @@ fun FabContainer(
     transition.AnimatedContent(
         contentAlignment = Alignment.Center,
         modifier = modifier
+            .navigationBarsPadding()
+            .statusBarsPadding()
             .padding(start = padding, end = padding, bottom = padding, top = padding)
             .shadow(
                 elevation = elevation,
@@ -210,8 +213,9 @@ fun FabContainer(
                     onFilterListChange = onFilterListChange,
                     onDismiss = { onContainerStateChange(FabContainerState.Fab) },
                     modifier = Modifier
-                        .widthIn(max = 600.dp)
-                        .fillMaxSize()
+                        .fillMaxSize(if(isCompactdevice)1f else 0.8f)
+                        .wrapContentHeight()
+
                 )
             }
         }
@@ -229,6 +233,7 @@ fun FilterContent(
     LazyColumn(
         modifier = modifier
             .padding(8.dp)
+            .statusBarsPadding()
             .clip(RoundedCornerShape(8.dp)),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(16.dp)
@@ -546,7 +551,8 @@ private fun Preview() {
                     Log.e("HomeScreen", "HomeScreen: $filterList")
                 },
                 modifier = Modifier
-                    .align(Alignment.BottomEnd),
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding(),
                 containerState = fabContainerState,
                 onContainerStateChange = { newContainerState ->
                     fabContainerState = newContainerState

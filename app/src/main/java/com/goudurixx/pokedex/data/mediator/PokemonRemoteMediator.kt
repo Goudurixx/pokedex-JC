@@ -19,8 +19,9 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
 class PokemonRemoteMediator @Inject constructor(
-    private val orderBy : OrderBy? = null,
-    private val filterBy : List<FilterBy>? = null,
+    private val orderBy: OrderBy? = null,
+    private val filterBy: List<FilterBy>? = null,
+    private val pagingKey: String,
     private val remoteDataSource: PokemonRemoteDataSource,
     private val pokedexDatabase: PokedexDatabase
 ) : RemoteMediator<Int, PokemonDaoModel>() {
@@ -33,6 +34,7 @@ class PokemonRemoteMediator @Inject constructor(
                 LoadType.REFRESH -> 0
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
+                    Log.d("PokemonRemoteMediator", "APPEND : $pagingKey")
                     val lastItem = state.lastItemOrNull()
                     if (lastItem == null) {
                         0
@@ -44,7 +46,12 @@ class PokemonRemoteMediator @Inject constructor(
 
             val response =
                 try {
-                    remoteDataSource.getPokemonList(state.config.pageSize, loadKey, orderBy, filterBy).toDataModel().results
+                    remoteDataSource.getPokemonList(
+                        limit = state.config.pageSize,
+                        offset = loadKey,
+                        orderBy = orderBy,
+                        filterBy = filterBy
+                    ).toDataModel().results
                 } catch (e: Exception) {
                     Log.e("PokemonRemoteMediator", "An error occured while trying to fetch list", e)
                     return MediatorResult.Error(e)
@@ -52,11 +59,11 @@ class PokemonRemoteMediator @Inject constructor(
 
             pokedexDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
-                   pokedexDatabase.pokemonDao().clearAll()
+                    pokedexDatabase.pokemonDao().clearAll(pagingKey, System.currentTimeMillis() - 1200000)
                 }
 
                 val pokemonDaos = response.mapIndexed { index, pokemon ->
-                    pokemon.toDaoModel(index + loadKey)
+                    pokemon.toDaoModel(index + loadKey, pagingKey)
                 }
                 pokedexDatabase.pokemonDao().upsertAll(pokemonDaos)
             }

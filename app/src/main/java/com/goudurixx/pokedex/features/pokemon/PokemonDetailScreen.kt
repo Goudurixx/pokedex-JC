@@ -3,6 +3,7 @@ package com.goudurixx.pokedex.features.pokemon
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
@@ -19,6 +20,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +31,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -41,6 +44,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Pentagon
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Square
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -80,22 +84,22 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.palette.graphics.Palette
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -112,6 +116,7 @@ import com.goudurixx.pokedex.core.ui.component.radarChart.models.NetLinesStyle
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.Polygon
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.PolygonStyle
 import com.goudurixx.pokedex.core.ui.utils.getContrastingColor
+import com.goudurixx.pokedex.core.ui.utils.shimmerEffect
 import com.goudurixx.pokedex.features.pokemon.models.EvolutionChainSpeciesUiModel
 import com.goudurixx.pokedex.features.pokemon.models.PokemonDetailUiModel
 import com.goudurixx.pokedex.features.pokemon.models.StatUiModel
@@ -124,6 +129,7 @@ import kotlin.math.min
 fun PokemonDetailRoute(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
+    navigateToType: (Int, String) -> Unit,
     pokemonId: Int? = null,
     backgroundColor: Int? = null,
     viewModel: PokemonDetailViewModel = hiltViewModel()
@@ -132,12 +138,17 @@ fun PokemonDetailRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val appDataUiState by viewModel.appDataUiState.collectAsStateWithLifecycle()
     val speciesUiState by viewModel.speciesUiState.collectAsStateWithLifecycle()
+
+    BackHandler {
+        onBackClick()
+    }
     PokemonDetailScreen(
         uiState = uiState,
         appDataUiState = appDataUiState,
         speciesUiState = speciesUiState,
         onBackClick = onBackClick,
         navigateToPokemonDetail = navigateToPokemonDetail,
+        navigateToType = navigateToType,
         pokemonId = pokemonId,
         backgroundColor = backgroundColor ?: MaterialTheme.colorScheme.primary.toArgb()
     )
@@ -151,15 +162,16 @@ fun PokemonDetailScreen(
     speciesUiState: PokemonSpeciesUiState,
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
+    navigateToType: (Int, String) -> Unit,
     pokemonId: Int?,
     backgroundColor: Int,
 ) {
     var pokemon by remember {
         mutableStateOf(
-            PokemonDetailUiModel.placeHolder()
+            PokemonDetailUiModel.placeHolder(id = pokemonId, color = backgroundColor)
         )
     }
-    var dominantColor by rememberSaveable { mutableIntStateOf(backgroundColor) }
+    val dominantColor by rememberSaveable { mutableIntStateOf(pokemon.color.color.toArgb()) }
     val columnBackgroundColor = MaterialTheme.colorScheme.surface
     val scrollState = rememberScrollState()
     val toolbarAlpha = remember {
@@ -169,17 +181,24 @@ fun PokemonDetailScreen(
             scrollState.value.toFloat() / 100
         }
     }
-    val pokeballImage = ImageBitmap.imageResource(R.drawable.pokeball)
+    val pokeballImageVector = ImageVector.vectorResource(R.drawable.pokeball)
+    val pokeballImagepainter = rememberVectorPainter(image = pokeballImageVector)
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(dominantColor))
             .drawWithContent {
-                drawImage(
-                    image = pokeballImage,
-                    topLeft = Offset((pokeballImage.width / 2).toFloat(), 0f),
-                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
-                )
+                with(pokeballImagepainter) {
+                    draw(
+                        size = this.intrinsicSize.div(5f),
+                        colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
+                    )
+                }
+//                drawImage(
+//                    image = pokeballImage,
+//                    topLeft = Offset((pokeballImage.width / 2).toFloat(), 0f),
+//                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
+//                )
                 drawContent()
             },
         topBar = {
@@ -262,6 +281,7 @@ fun PokemonDetailScreen(
             ) {
                 TypesContent(
                     types = pokemon.types,
+                    onTypeClicked = navigateToType,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)
@@ -274,6 +294,7 @@ fun PokemonDetailScreen(
                 StatisticsContentWrapper(
                     stats = pokemon.stats,
                     appDataUiState = appDataUiState,
+                    color = pokemon.color.color,
                     modifier = Modifier
                         .heightIn(min = 200.dp, max = 300.dp)
                         .fillMaxWidth()
@@ -289,10 +310,6 @@ fun PokemonDetailScreen(
             }
             PokemonImageContent(
                 pokemon = pokemon,
-                backgroundColor = backgroundColor,
-                onDominantColorChange = { newDominantColor ->
-                    dominantColor = newDominantColor
-                }
             )
         }
         AnimatedVisibility(visible = uiState is PokemonDetailUiState.Error, enter = fadeIn()) {
@@ -337,20 +354,19 @@ private fun PokemonDetailScreenErrorContent(modifier: Modifier) {
 @Composable
 fun PokemonImageContent(
     pokemon: PokemonDetailUiModel,
-    backgroundColor: Int,
-    onDominantColorChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val imageRequest = ImageRequest.Builder(LocalContext.current)
         .data(pokemon.imageUrl)
         .allowHardware(false)
         .crossfade(true)
-        .listener { _, result ->
-            onDominantColorChange(
-                Palette.from(result.drawable.toBitmap()).generate().dominantSwatch?.rgb
-                    ?: backgroundColor
-            )
-        }.build()
+//        .listener { _, result ->
+//            onDominantColorChange(
+//                Palette.from(result.drawable.toBitmap()).generate().dominantSwatch?.rgb
+//                    ?: backgroundColor
+//            )
+//        }
+        .build()
 
 
     var mediaPlayer: MediaPlayer? = null
@@ -389,17 +405,14 @@ fun PokemonImageContent(
                 label = "transition of image"
             )
 
-            if (state is AsyncImagePainter.State.Error) {
+            SubcomposeAsyncImageContent(
+                modifier = Modifier
+                    .scale(.8f + (.2f * transition))
+                    .graphicsLayer { rotationX = (1f - transition) * 5f }
+                    .alpha(min(1f, transition / .2f))
 
-            } else {
-                SubcomposeAsyncImageContent(
-                    modifier = Modifier
-                        .scale(.8f + (.2f * transition))
-                        .graphicsLayer { rotationX = (1f - transition) * 5f }
-                        .alpha(min(1f, transition / .2f))
+            )
 
-                )
-            }
         }
 
         OutlinedIconButton(
@@ -421,19 +434,26 @@ fun PokemonImageContent(
 }
 
 @Composable
-fun TypesContent(types: List<TypeUiModel>, modifier: Modifier) {
+fun TypesContent(
+    types: List<TypeUiModel>,
+    onTypeClicked: (Int, String) -> Unit,
+    modifier: Modifier
+) {
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        types.forEach { (_, type, color) ->
+        types.forEach { (id, type, color) ->
             Button(
-                onClick = { /*TODO navigate to type screen*/ },
+                onClick = { onTypeClicked(id, type) },
                 modifier = Modifier
                     .padding(8.dp)
-                    .height(32.dp),
+                    .clip(RoundedCornerShape(16.dp))
+                    .height(32.dp)
+                    .shimmerEffect(isLoading = id == -1),
+                enabled = id != -1,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = color,
                     contentColor = color.getContrastingColor()
@@ -442,6 +462,7 @@ fun TypesContent(types: List<TypeUiModel>, modifier: Modifier) {
                 Text(
                     text = type.capitalize(Locale.ROOT),
                     style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
                 )
             }
         }
@@ -529,13 +550,15 @@ fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
 
 
 @Composable
-fun StatisticsContentWrapper(
+fun ColumnScope.StatisticsContentWrapper(
     stats: List<StatUiModel>,
     appDataUiState: AppDataUiState,
+    color: Color,
     modifier: Modifier,
 ) {
 
     var showBarChart by remember { mutableStateOf(true) }
+    val screenIsFull = LocalConfiguration.current.screenWidthDp < 600.dp.value
 
     Column(
         modifier = modifier.wrapContentSize(align = Alignment.CenterStart)
@@ -549,7 +572,7 @@ fun StatisticsContentWrapper(
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
-            OutlinedIconButton(
+            if (screenIsFull) OutlinedIconButton(
                 onClick = { showBarChart = !showBarChart },
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
@@ -571,27 +594,63 @@ fun StatisticsContentWrapper(
                 }
             }
         }
-        if(appDataUiState is AppDataUiState.Success){
-            if ((!showBarChart)) {
-                StatisticsContentAsBarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            } else {
-                StatisticsContentAsRadarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
+        if (appDataUiState is AppDataUiState.Success) {
+            if (screenIsFull)
+                if ((!showBarChart)) {
+                    StatisticsContentAsBarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        color = color,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                } else {
+                    StatisticsContentAsRadarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            else
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    StatisticsContentAsRadarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .widthIn(max = 300.dp)
+                    )
+                    StatisticsContentAsBarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        color = color,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
         }
     }
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.Square, contentDescription = "min", tint = Color.Green)
+        Text(text = ": min ", style = MaterialTheme.typography.bodySmall)
+        Icon(Icons.Default.Square, contentDescription = "avg", tint = Color.Blue)
+        Text(text = ": avg ", style = MaterialTheme.typography.bodySmall)
+        Icon(Icons.Default.Square, contentDescription = "min", tint = Color.Red)
+        Text(text = ": max ", style = MaterialTheme.typography.bodySmall)
+
+    }
+
 }
 
 @Composable
 fun StatisticsContentAsBarChart(
     stats: List<StatUiModel>,
+    color: Color,
     globalStatList: GlobalStatList,
     modifier: Modifier,
 ) {
@@ -606,7 +665,7 @@ fun StatisticsContentAsBarChart(
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        for (stat in stats) {
+        stats.forEachIndexed { index, stat ->
             val transition by animateFloatAsState(
                 targetValue = if (beginAnimation) stat.value / 255f else 0f,
                 label = "transition of the statistics ${stat.statId}"
@@ -634,10 +693,47 @@ fun StatisticsContentAsBarChart(
                 LinearProgressIndicator(
                     progress = { transition },
                     trackColor = Color.LightGray,
-                    color = stat.color,
+                    color = color,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp),
+                        .height(4.dp)
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                color = Color.Green.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].min / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+                            drawRect(
+                                color = Color.Blue.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].avg / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+                            drawRect(
+                                color = Color.Red.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].max / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+
+                        },
                     strokeCap = StrokeCap.Round
                 )
 
@@ -828,11 +924,10 @@ fun EvolutionChainRow(
 @Composable
 fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Unit) {
 
-    val surface = MaterialTheme.colorScheme.surface
-    var dominantColor by remember { mutableIntStateOf(surface.toArgb()) }
+    val dominantColor by remember { mutableIntStateOf(pokemon.color.color.toArgb()) }
 
     Card(
-        onClick = { onCardClick(dominantColor) },
+        onClick = { onCardClick(pokemon.color.ordinal) },
         modifier = Modifier
             .padding(8.dp)
             .width(80.dp)
@@ -857,13 +952,14 @@ fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Un
                 .data(pokemon.imageUrl)
                 .allowHardware(false)
                 .crossfade(true)
-                .listener { _, result ->
-                    result.drawable.let {
-                        dominantColor =
-                            Palette.from(it.toBitmap()).generate().dominantSwatch?.rgb
-                                ?: surface.toArgb()
-                    }
-                }.build()
+//                .listener { _, result ->
+//                    result.drawable.let {
+//                        dominantColor =
+//                            Palette.from(it.toBitmap()).generate().dominantSwatch?.rgb
+//                                ?: surface.toArgb()
+//                    }
+//                }
+                .build()
 
             AsyncImage(
                 model = imageRequest,
