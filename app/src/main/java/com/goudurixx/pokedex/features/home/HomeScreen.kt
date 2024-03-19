@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -70,18 +71,22 @@ fun HomeScreen(
 ) {
     var searchBarSize by remember { mutableStateOf(IntSize.Zero) }
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            DockedSearchContainer(
-                query = search,
-                onQueryChange = onUpdateSearch,
-                onClickOnResult = navigateToPokemonDetail,
-                modifier = Modifier.onSizeChanged { newSize ->
-                    if (newSize.height < searchBarSize.height || searchBarSize.height == 0) searchBarSize =
-                        newSize
-                },
-                state = searchState
-            )
+    Box(modifier = Modifier.fillMaxSize()) {
+        DockedSearchContainer(
+            query = search,
+            onQueryChange = onUpdateSearch,
+            onClickOnResult = navigateToPokemonDetail,
+            modifier = Modifier.onSizeChanged { newSize ->
+                if (newSize.height < searchBarSize.height || searchBarSize.height == 0) searchBarSize =
+                    newSize
+            },
+            state = searchState
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = searchBarSize.height.dp)
+        ) {
             Text(
                 text = "Home Screen - Welcome to Pokedex!",
                 modifier = Modifier
@@ -112,7 +117,9 @@ fun HomeScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = it.color
                         ),
-                        modifier = Modifier.padding(4.dp).fillMaxHeight(0.5f)
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxHeight(0.5f)
                     ) {
                         Text(text = it.name)
                     }
