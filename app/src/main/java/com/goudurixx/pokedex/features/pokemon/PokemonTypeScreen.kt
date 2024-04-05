@@ -67,8 +67,9 @@ fun PokemonTypeScreen(
                 PokemonList(
                     pokemonLazyPagingItems = pokemonLazyPagingItems,
                     onItemClick = navigateToPokemonDetail,
+                    contentPadding = PaddingValues(16.dp),
+                    onUpdateFavorite = onUpdateFavorite,
                     modifier = Modifier.padding(it),
-                    contentPadding = PaddingValues(16.dp)
                 )
                 Text(text = uiState.data.name)
             }

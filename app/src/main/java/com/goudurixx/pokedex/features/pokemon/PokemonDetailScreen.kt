@@ -12,6 +12,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.animation.graphics.res.animatedVectorResource
+import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
+import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -83,13 +87,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -110,6 +112,7 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.goudurixx.pokedex.R
+import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.ui.component.radarChart.RadarChart
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.NetLinesStyle
@@ -129,10 +132,10 @@ import kotlin.math.min
 fun PokemonDetailRoute(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToType: (Int, String) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
     pokemonId: Int? = null,
     backgroundColor: Int? = null,
-    viewModel: PokemonDetailViewModel = hiltViewModel()
+    viewModel: PokemonDetailViewModel = hiltViewModel(),
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -148,13 +151,16 @@ fun PokemonDetailRoute(
         speciesUiState = speciesUiState,
         onBackClick = onBackClick,
         navigateToPokemonDetail = navigateToPokemonDetail,
-        navigateToType = navigateToType,
+        navigateToPokemonResultList = navigateToPokemonResultList,
         pokemonId = pokemonId,
         backgroundColor = backgroundColor ?: MaterialTheme.colorScheme.primary.toArgb()
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalAnimationGraphicsApi::class
+)
 @Composable
 fun PokemonDetailScreen(
     uiState: PokemonDetailUiState,
@@ -162,7 +168,7 @@ fun PokemonDetailScreen(
     speciesUiState: PokemonSpeciesUiState,
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToType: (Int, String) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
     pokemonId: Int?,
     backgroundColor: Int,
 ) {
@@ -182,23 +188,30 @@ fun PokemonDetailScreen(
         }
     }
     val pokeballImageVector = ImageVector.vectorResource(R.drawable.pokeball)
-    val pokeballImagepainter = rememberVectorPainter(image = pokeballImageVector)
+    var atEnd by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(dominantColor)),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        LaunchedEffect(Unit) {
+            atEnd = !atEnd
+        }
+        val loadingImage =
+            AnimatedImageVector.animatedVectorResource(R.drawable.pokeball_loader)
+        Image(
+            rememberAnimatedVectorPainter(loadingImage, atEnd),
+            null,
+            modifier = Modifier
+                .alpha(0.2f)
+                .fillMaxWidth(0.5f)
+        )
+    }
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(dominantColor))
             .drawWithContent {
-                with(pokeballImagepainter) {
-                    draw(
-                        size = this.intrinsicSize.div(5f),
-                        colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
-                    )
-                }
-//                drawImage(
-//                    image = pokeballImage,
-//                    topLeft = Offset((pokeballImage.width / 2).toFloat(), 0f),
-//                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
-//                )
                 drawContent()
             },
         topBar = {
@@ -243,7 +256,6 @@ fun PokemonDetailScreen(
                 )
             )
         },
-//        containerColor = Color(dominantColor), //TODO FIND A WAY TO DRAW CONTENT AND HAVE CONTAINER COLOR
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
@@ -281,7 +293,14 @@ fun PokemonDetailScreen(
             ) {
                 TypesContent(
                     types = pokemon.types,
-                    onTypeClicked = navigateToType,
+                    onTypeClicked = { typeId, typeName, typeColor ->
+                        navigateToPokemonResultList(
+                            FilterByParameter.TYPE,
+                            typeId,
+                            typeName,
+                            typeColor
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 32.dp)
@@ -370,6 +389,7 @@ fun PokemonImageContent(
 
 
     var mediaPlayer: MediaPlayer? = null
+
     try {
         mediaPlayer = MediaPlayer().apply {
             setAudioAttributes(
@@ -436,7 +456,7 @@ fun PokemonImageContent(
 @Composable
 fun TypesContent(
     types: List<TypeUiModel>,
-    onTypeClicked: (Int, String) -> Unit,
+    onTypeClicked: (Int, String, Int?) -> Unit,
     modifier: Modifier
 ) {
 
@@ -447,7 +467,7 @@ fun TypesContent(
     ) {
         types.forEach { (id, type, color) ->
             Button(
-                onClick = { onTypeClicked(id, type) },
+                onClick = { onTypeClicked(id, type, color.toArgb()) },
                 modifier = Modifier
                     .padding(8.dp)
                     .clip(RoundedCornerShape(16.dp))
@@ -1052,20 +1072,20 @@ fun MyIndicator(modifier: Modifier = Modifier) {
         animationSpec = tween(durationMillis = progressAnimDuration, easing = FastOutSlowInEasing),
         label = "Indicator animation"
     )
-    CircularProgressIndicator(
-        progress = {
-            progressAnimation
-        },
-        modifier = modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                translationY = -size.height / 2
-            }
-            .scale(-1f, -1f),
-        strokeWidth = 10.dp,
-        trackColor = Color.LightGray,
-        strokeCap = StrokeCap.Round
-    )
+//    CircularProgressIndicator(
+//        progress = {
+//            progressAnimation
+//        },
+//        modifier = modifier
+//            .fillMaxSize()
+//            .graphicsLayer {
+//                translationY = -size.height / 2
+//            }
+//            .scale(-1f, -1f),
+//        strokeWidth = 10.dp,
+//        trackColor = Color.LightGray,
+//        strokeCap = StrokeCap.Round
+//    )
     LaunchedEffect(Unit) {
         delay(100)
         progress = 1f

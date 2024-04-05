@@ -22,22 +22,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -63,6 +76,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,8 +85,10 @@ import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.ui.theme.PokedexTheme
 import com.goudurixx.pokedex.core.ui.theme.TypeFire
 import com.goudurixx.pokedex.core.ui.theme.TypeWater
+import com.goudurixx.pokedex.core.utils.snakeCaseToLabel
 import com.goudurixx.pokedex.features.pokemon.models.BaseFilterItemUiModel
 import com.goudurixx.pokedex.features.pokemon.models.BooleanFilterUiModel
+import com.goudurixx.pokedex.features.pokemon.models.GenerationUiModel
 import com.goudurixx.pokedex.features.pokemon.models.ListFilterUiModel
 import com.goudurixx.pokedex.features.pokemon.models.RangeFilterItemUiModel
 import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
@@ -84,6 +100,7 @@ import kotlin.math.roundToInt
 fun FabContainer(
     filterList: List<BaseFilterItemUiModel>,
     onFilterListChange: (List<BaseFilterItemUiModel>) -> Unit,
+    onResetFilter: () -> Unit,
     containerState: FabContainerState,
     onContainerStateChange: (FabContainerState) -> Unit,
     modifier: Modifier = Modifier,
@@ -211,11 +228,11 @@ fun FabContainer(
                 FilterContent(
                     filterList = filterList,
                     onFilterListChange = onFilterListChange,
+                    onResetFilter = onResetFilter,
                     onDismiss = { onContainerStateChange(FabContainerState.Fab) },
                     modifier = Modifier
-                        .fillMaxSize(if(isCompactdevice)1f else 0.8f)
+                        .fillMaxSize(if (isCompactdevice) 1f else 0.8f)
                         .wrapContentHeight()
-
                 )
             }
         }
@@ -226,121 +243,78 @@ fun FabContainer(
 fun FilterContent(
     filterList: List<BaseFilterItemUiModel>,
     onFilterListChange: (List<BaseFilterItemUiModel>) -> Unit,
+    onResetFilter: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
-    LazyColumn(
-        modifier = modifier
-            .padding(8.dp)
-            .statusBarsPadding()
-            .clip(RoundedCornerShape(8.dp)),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(16.dp)
-    ) {
-        item {
-            filterList.forEachIndexed { index, filterItem ->
-
-                when (filterItem) {
-                    is RangeFilterItemUiModel -> {
-                        RangeSliderItem(
-                            filterItem = filterItem,
-                            index = index,
-                            filterList = filterList,
-                            onFilterListChange = onFilterListChange,
-                        )
-                    }
-
-                    is ListFilterUiModel<*> -> {
-                        Text(
-                            text = filterItem.type.parameterName,
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center,
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            filterItem.list.forEachIndexed { index, it ->
-                                if (it.first is TypeUiModel) {
-                                    val type = it.first as TypeUiModel
-                                    TextButton(
-                                        onClick = {
-                                            onFilterListChange(
-                                                filterList.updateFilterList(
-                                                    index,
-                                                    filterItem.updateList(
-                                                        filterItem.list.indexOf(it),
-                                                        filterItem.list[index].second
-                                                    )
-                                                )
-                                            )
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = type.color),
-                                        border = if (filterItem.list[index].second) BorderStroke(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.onSurface
-                                        ) else null,
-                                    ) {
-                                        Text(
-                                            text = type.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    is BooleanFilterUiModel -> {
-                        Row(
-                            modifier = Modifier
-                                .padding(vertical = 8.dp)
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = filterItem.type.parameterName,
-                                modifier = Modifier.weight(1f)
-                            )
-                            SingleChoiceBooleanButton(
-                                value = filterItem.value,
-                                onValueChange = {
-                                    onFilterListChange(
-                                        filterList.updateFilterList(
-                                            index,
-                                            filterItem.copy(value = it)
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
+    Column(modifier = modifier) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            FilledTonalButton(
+                onClick = onResetFilter,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                modifier = Modifier.padding(8.dp),
+            ) {
+                Text(
+                    text = "Reset"
+                )
+            }
+            Spacer(Modifier.weight(1f))
+            Button(
+                onClick = {
+                    onDismiss()
+                    Log.e("FilterContent", "FilterContent: $filterList")
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(
+                    text = "Done"
+                )
             }
         }
-        item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                OutlinedButton(
-                    onClick = {
-                        onDismiss()
-                        Log.e("FilterContent", "FilterContent: $filterList")
-                    },
-                    modifier = Modifier
-                ) {
-                    Text(
-                        text = "Dismiss"
+        LazyColumn(
+            modifier = modifier
+                .statusBarsPadding()
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp)),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            itemsIndexed(filterList) { index, filterItem ->
+                when (filterItem) {
+                    is RangeFilterItemUiModel -> RangeSliderItem(
+                        filterItem = filterItem,
+                        index = index,
+                        filterList = filterList,
+                        onFilterListChange = onFilterListChange,
+                    )
+
+                    is ListFilterUiModel -> ListFilterItem(
+                        filterItem = filterItem,
+                        index = index,
+                        filterList = filterList,
+                        onFilterListChange = onFilterListChange,
+                    )
+
+                    is BooleanFilterUiModel -> BooleanFilterItem(
+                        filterItem = filterItem,
+                        index = index,
+                        filterList = filterList,
+                        onFilterListChange = onFilterListChange,
                     )
                 }
+                HorizontalDivider(modifier = Modifier.padding(4.dp))
             }
         }
     }
 }
 
+
 @Composable
-fun RangeSliderItem(
+private fun RangeSliderItem(
     filterItem: RangeFilterItemUiModel,
     index: Int,
     filterList: List<BaseFilterItemUiModel>,
@@ -348,7 +322,7 @@ fun RangeSliderItem(
 ) {
     Column() {
         Text(
-            text = filterItem.type.parameterName,
+            text = filterItem.type.parameterName.snakeCaseToLabel(),
             modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
@@ -363,39 +337,251 @@ fun RangeSliderItem(
                     )
                 )
             },
+            modifier = Modifier,
             steps = filterItem.steps,
             valueRange = filterItem.range,
         )
         Row(Modifier.fillMaxWidth()) {
-            Text(
-                text = filterItem.value.start.roundToInt().toString(),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
+            var start by remember(filterItem.value.start) {
+                mutableStateOf(filterItem.value.start.roundToInt().toString())
+            }
+            val isStartInError = start.toFloatOrNull()?.let {
+                it !in filterItem.range || it > filterItem.value.endInclusive
+            } != false
+
+            BasicTextField(
+                value = start,
+                onValueChange = { newValue: String ->
+                    if (newValue.toFloatOrNull() != null) {
+                        start = newValue
+                        if (newValue.toFloat() in filterItem.range) {
+                            onFilterListChange(
+                                filterList.updateFilterList(
+                                    index,
+                                    filterItem.copy(value = newValue.toFloat()..filterItem.value.endInclusive)
+                                )
+                            )
+                        }
+                    } else onFilterListChange(
+                        filterList.updateFilterList(
+                            index,
+                            filterItem.copy(value = filterItem.range.start..filterItem.value.endInclusive)
+                        )
+                    )
+                },
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = if (isStartInError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (isStartInError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(4.dp)
+                    .width((filterItem.range.endInclusive.roundToInt().toString().length * 8).dp)
             )
-            Text(
-                text = filterItem.value.endInclusive.roundToInt().toString(),
-                style = MaterialTheme.typography.titleMedium,
+            Spacer(modifier = Modifier.weight(1f))
+            var end by remember(filterItem.value.endInclusive) {
+                mutableStateOf(filterItem.value.endInclusive.roundToInt().toString())
+            }
+            val isEndInError = end.toFloatOrNull()?.let {
+                it !in filterItem.range || it < filterItem.value.start
+            } != false
+
+            BasicTextField(
+                value = end,
+                onValueChange = { newValue: String ->
+                    if (newValue.toFloatOrNull() != null) {
+                        end = newValue
+                        if (newValue.toFloat() in filterItem.range) {
+                            onFilterListChange(
+                                filterList.updateFilterList(
+                                    index,
+                                    filterItem.copy(value = filterItem.value.start..newValue.toFloat())
+                                )
+                            )
+                        }
+                    } else {
+                        onFilterListChange(
+                            filterList.updateFilterList(
+                                index,
+                                filterItem.copy(value = filterItem.value.start..filterItem.range.endInclusive)
+                            )
+                        )
+                    }
+                },
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = if (isEndInError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        if (isEndInError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(4.dp)
+                    .width((filterItem.range.endInclusive.roundToInt().toString().length * 8).dp)
             )
         }
     }
 }
 
+
+@Composable
+private fun ListFilterItem(
+    filterItem: ListFilterUiModel,
+    index: Int,
+    filterList: List<BaseFilterItemUiModel>,
+    onFilterListChange: (List<BaseFilterItemUiModel>) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = filterItem.type.parameterName.snakeCaseToLabel(),
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            text = "${filterItem.list.filter { it.second }.size}",
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer,
+                    RoundedCornerShape(50)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+    LazyRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        itemsIndexed(filterItem.list) { filterItemIndex, it ->
+            when (it.first) {
+                is TypeUiModel -> {
+                    val type = it.first as TypeUiModel
+                    FilterChip(
+                        selected = filterItem.list[filterItemIndex].second,
+                        onClick = {
+                            onFilterListChange(
+                                filterList.updateFilterList(
+                                    index,
+                                    filterItem.updateList(
+                                        filterItem.list.indexOf(it),
+                                        filterItem.list[filterItemIndex].second
+                                    )
+                                )
+                            )
+                        }, label = {
+                            Text(
+                                text = type.name,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        },
+                        modifier = Modifier.padding(4.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = filterItem.list[filterItemIndex].second,
+                            borderColor = type.color,
+                        )
+                    )
+                }
+
+                is GenerationUiModel -> {
+                    val generation = it.first as GenerationUiModel
+                    FilterChip(
+                        selected = filterItem.list[filterItemIndex].second,
+                        onClick = {
+                            onFilterListChange(
+                                filterList.updateFilterList(
+                                    index,
+                                    filterItem.updateList(
+                                        filterItem.list.indexOf(it),
+                                        filterItem.list[filterItemIndex].second
+                                    )
+                                )
+                            )
+                        }, label = {
+                            Text(
+                                text = generation.name,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        },
+                        modifier = Modifier.padding(4.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BooleanFilterItem(
+    filterItem: BooleanFilterUiModel,
+    index: Int,
+    filterList: List<BaseFilterItemUiModel>,
+    onFilterListChange: (List<BaseFilterItemUiModel>) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = filterItem.type.parameterName.snakeCaseToLabel(),
+            modifier = Modifier.weight(1f)
+        )
+        SingleChoiceBooleanButton(
+            value = filterItem.value,
+            onValueChange = {
+                onFilterListChange(
+                    filterList.updateFilterList(
+                        index,
+                        filterItem.copy(value = it)
+                    )
+                )
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SingleChoiceBooleanButton(value: Boolean?, onValueChange: (Boolean?) -> Unit) {
+private fun SingleChoiceBooleanButton(value: Boolean?, onValueChange: (Boolean?) -> Unit) {
+
+    val segmentedButtonColor = SegmentedButtonDefaults.colors(
+        activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+        activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    )
 
     SingleChoiceSegmentedButtonRow {
         SegmentedButton(
             selected = value == true,
             onClick = { onValueChange(if (value == true) null else true) },
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            colors = segmentedButtonColor
         ) {
             Text(text = "Yes")
         }
         SegmentedButton(
             selected = value == false,
             onClick = { onValueChange(if (value == false) null else false) },
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            colors = segmentedButtonColor
         ) {
             Text(text = "No")
         }
@@ -498,7 +684,7 @@ private fun Fab(
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = rememberVectorPainter(Icons.Filled.Add),
+            painter = rememberVectorPainter(Icons.Filled.FilterAlt),
             contentDescription = null,
         )
     }
@@ -520,7 +706,7 @@ private fun Preview() {
                     RangeFilterItemUiModel(FilterByParameter.ID, 0f..1000f, 0f..1000f),
                     RangeFilterItemUiModel(FilterByParameter.BASE_EXPERIENCE, 0f..400f, 0f..400f),
                     RangeFilterItemUiModel(FilterByParameter.ATTACK, 0f..255f, 0f..255f),
-                    ListFilterUiModel<TypeUiModel>(
+                    ListFilterUiModel(
                         FilterByParameter.TYPE,
                         listOf(
                             Pair(TypeUiModel(id = 1, "fire", TypeFire), false),
@@ -550,13 +736,14 @@ private fun Preview() {
                     filterList = it
                     Log.e("HomeScreen", "HomeScreen: $filterList")
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .navigationBarsPadding(),
                 containerState = fabContainerState,
                 onContainerStateChange = { newContainerState ->
                     fabContainerState = newContainerState
-                }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .navigationBarsPadding(),
+                onResetFilter = {}
             )
         }
     }

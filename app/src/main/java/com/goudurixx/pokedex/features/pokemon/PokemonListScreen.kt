@@ -5,6 +5,7 @@ import FabContainer
 import FabContainerState
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,6 +56,8 @@ fun PokemonListRoute(
         onUpdateSearch = viewModel::updateSearch,
         onUpdateSort = viewModel::updateSort,
         onFilterChange = viewModel::updateFilter,
+        onResetFilter = viewModel::resetFilter,
+        onUpdateFavorite = viewModel::updateFavorite,
         pokemonLazyPagingItems = pokemonLazyPagingItems,
         navigateToPokemonDetail = navigateToPokemonDetail
     )
@@ -70,15 +73,16 @@ fun PokemonListScreen(
     onUpdateSearch: (String) -> Unit,
     onUpdateSort: (SortOrderItem) -> Unit,
     onFilterChange: (List<BaseFilterItemUiModel>) -> Unit,
+    onResetFilter: () -> Unit,
+    onUpdateFavorite: (Int, Boolean) -> Unit,
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
-    navigateToPokemonDetail: (Int, Int) -> Unit
+    navigateToPokemonDetail: (Int, Int) -> Unit,
 ) {
 
     var filterFabContainerState by remember { mutableStateOf(FabContainerState.Fab) }
 
     BackHandler(filterFabContainerState == FabContainerState.Fullscreen) {
         filterFabContainerState = FabContainerState.Fab
-
     }
     val selectedFilter by remember(sortFilterList) {
         derivedStateOf {
@@ -86,16 +90,15 @@ fun PokemonListScreen(
         }
     }
     var searchBarSize by remember { mutableStateOf(IntSize.Zero) }
-
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     Box(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize().background(backgroundColor),
         contentAlignment = Alignment.TopCenter
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            val backgroundColor = MaterialTheme.colorScheme.background
 
             DockedSearchContainer(
                 sortFilterList = sortFilterList,
@@ -142,6 +145,7 @@ fun PokemonListScreen(
         FabContainer(
             filterList = filterList,
             onFilterListChange = onFilterChange,
+            onResetFilter = onResetFilter,
             containerState = filterFabContainerState,
             onContainerStateChange = { newContainerState ->
                 filterFabContainerState = newContainerState

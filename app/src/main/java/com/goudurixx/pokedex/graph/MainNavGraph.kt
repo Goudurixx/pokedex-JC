@@ -13,9 +13,10 @@ import com.goudurixx.pokedex.features.home.navigation.homeScreen
 import com.goudurixx.pokedex.features.pokemap.navigation.pokeMap
 import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonDetail
 import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonList
-import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonType
+import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonResultList
 import com.goudurixx.pokedex.features.pokemon.navigation.pokemonDetailScreen
 import com.goudurixx.pokedex.features.pokemon.navigation.pokemonList
+import com.goudurixx.pokedex.features.pokemon.navigation.pokemonResultList
 import com.goudurixx.pokedex.features.pokemon.navigation.pokemonType
 import com.goudurixx.pokedex.navigation.MainDestinations
 
@@ -102,49 +103,50 @@ fun MainNavGraph(
                 }
                 navController.navigateToPokemonList(topLevelNavOptions)
             },
-            navigateToPokemonDetail = { id, color ->
-                navController.navigateToPokemonDetail(id = id, color = color)
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
+            navigateToPokemonFavorite =
+            {
+                val topLevelNavOptions = navOptions {
+                    // Pop up to the start destination of the graph to
+                    // avoid building up a large stack of destinations
+                    // on the back stack as users select items
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    // Avoid multiple copies of the same destination when
+                    // reselecting the same item
+                    launchSingleTop = true
+                    // Restore state when reselecting a previously selected item
+                    restoreState = true
+                }
+                navController.navigateToFavorite(topLevelNavOptions)
             },
-            navigateToType = { id, name ->
-                navController.navigateToPokemonType(id, name)
-            }
+            navigateToPokemonResultList = navController::navigateToPokemonResultList
+
         )
-        pokemonList(
-            navigateToPokemonDetail = { id, color ->
-                navController.navigateToPokemonDetail(id = id, color = color)
-            }
-        )
+        pokemonList(navigateToPokemonDetail = navController::navigateToPokemonDetail)
         pokemonDetailScreen(
             onBackClick = {
                 while (navController.popBackStack()) {
                     if (MainDestinations.entries.find { navController.currentDestination?.route == it.route } != null) break
                 }
                 navController.popBackStack(MainDestinations.POKEMON.route, inclusive = false)
-
             },
-            navigateToPokemonDetail = { id, color ->
-                navController.navigateToPokemonDetail(id = id, color = color)
-            },
-            navigateToType = { id, name ->
-                navController.navigateToPokemonType(id, name)
-            }
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
+            navigateToPokemonResultList = navController::navigateToPokemonResultList
         )
         favoriteScreen()
         pokeMap(
-            onBackClick = {
-                navController.popBackStack()
-            },
-            navigateToPokemonDetail = { id, color ->
-                navController.navigateToPokemonDetail(id = id, color = color)
-            }
+            onBackClick = navController::popBackStack,
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
         )
         pokemonType(
-            navigateToPokemonDetail = { id, color ->
-                navController.navigateToPokemonDetail(id = id, color = color)
-            },
-            onBackClick = {
-                navController.popBackStack()
-            }
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
+            onBackClick = navController::popBackStack,
+        )
+        pokemonResultList(
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
+            onBackClick = navController::popBackStack
         )
     }
 }

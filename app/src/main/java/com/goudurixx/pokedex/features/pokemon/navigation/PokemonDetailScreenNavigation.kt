@@ -7,6 +7,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.routing.models.Routes
 import com.goudurixx.pokedex.core.routing.utils.navigateSafely
 import com.goudurixx.pokedex.features.pokemon.PokemonDetailRoute
@@ -27,14 +28,21 @@ internal class PokemonArgs(val id: Int, val color: Int? = null) {
             )
 }
 
-fun NavController.navigateToPokemonDetail(id: Int, color: Int? = null, navOptions: NavOptions? = null) {
-    this.navigateSafely("$pokemonDetailRoute$pokemonIdParam=$id$pokemonColorParam=$color", navOptions)
+fun NavController.navigateToPokemonDetail(
+    id: Int,
+    color: Int? = null,
+    navOptions: NavOptions? = null
+) {
+    this.navigateSafely(
+        "$pokemonDetailRoute$pokemonIdParam=$id$pokemonColorParam=$color",
+        navOptions
+    )
 }
 
 internal fun NavGraphBuilder.pokemonDetailScreen(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToType: (Int, String) -> Unit
+    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit
 ) {
     composable(
         route = "$pokemonDetailRoute$pokemonIdParam={$pokemonIdParam}$pokemonColorParam={$pokemonColorParam}",
@@ -51,8 +59,13 @@ internal fun NavGraphBuilder.pokemonDetailScreen(
             onBackClick = onBackClick,
             pokemonId = id,
             backgroundColor = color,
-            navigateToPokemonDetail = { id, pokemonColor -> if(id != it.arguments?.getInt(pokemonIdParam)) navigateToPokemonDetail(id, pokemonColor) },
-            navigateToType = { id, name -> navigateToType(id, name) }
+            navigateToPokemonDetail = { destId, pokemonColor ->
+                if (destId != it.arguments?.getInt(
+                        pokemonIdParam
+                    )
+                ) navigateToPokemonDetail(destId, pokemonColor)
+            },
+            navigateToPokemonResultList = navigateToPokemonResultList
         )
     }
 }

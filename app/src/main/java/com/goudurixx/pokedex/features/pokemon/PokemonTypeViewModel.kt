@@ -39,7 +39,14 @@ class PokemonTypeViewModel @Inject constructor(
             listOf<FilterBy>(
                 FilterBy(
                     parameter = FilterByParameter.TYPE,
-                    value = ListFilterValue(value = listOf(typeArgs.typeId))
+                    value = ListFilterValue(
+                        value = listOf(
+                            TypeModel(
+                                typeArgs.typeId,
+                                typeArgs.typeName
+                            ).toUiModel()
+                        ), type = FilterByParameter.TYPE
+                    )
                 )
             )
         ).map { pagingData ->

@@ -5,10 +5,10 @@ import  androidx.compose.ui.graphics.Color
 import com.goudurixx.pokedex.core.ui.theme.*
 
 data class TypeUiModel(
-    val id: Int,
+    override val id: Int,
     val name: String,
     val color : Color
-)
+) : ListFilterItemUiModel()
 
 fun TypeModel.toUiModel() = TypeUiModel(
     id = id,

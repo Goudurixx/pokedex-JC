@@ -72,7 +72,7 @@ class PokemonRepository @Inject constructor(
             remoteMediator = PokemonRemoteMediator(
                 orderBy = orderBy,
                 filterBy = filterBy,
-                pagingKey= pagingKey,
+                pagingKey = pagingKey,
                 remoteDataSource = remoteDataSource,
                 pokedexDatabase = pokedexDatabase
             ),
@@ -89,10 +89,12 @@ class PokemonRepository @Inject constructor(
             "updatePaginationParams with orderBy: $orderBy and filterBy: $filterBy"
         )
         return if (this.filterBy != filterBy || this.orderBy != orderBy || pager == null) {
-            Log.e("PokemonRepository", "updatePaginationParams with new params : \n" +
-                    "orderBy:  ${this.orderBy} VS $orderBy \n" +
-                    "filterBy:  ${this.filterBy} VS $filterBy \n" +
-                    "pager: $pager \n")
+            Log.e(
+                "PokemonRepository", "updatePaginationParams with new params : \n" +
+                        "orderBy:  ${this.orderBy} VS $orderBy \n" +
+                        "filterBy:  ${this.filterBy} VS $filterBy \n" +
+                        "pager: $pager \n"
+            )
             if (this.filterBy != filterBy) this.filterBy = filterBy
             if (this.orderBy != orderBy) this.orderBy = orderBy
             createPager()

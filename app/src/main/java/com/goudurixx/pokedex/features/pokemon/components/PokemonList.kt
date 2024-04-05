@@ -109,12 +109,10 @@ internal fun BoxScope.PokemonList(
                     onItemClick = onItemClick,
                     itemHeight = 100.dp,
                     modifier = Modifier,
-                    favorite = false,
-                    onAddToFavorite = { /*TODO*/ }
                 )
             }
         }
-        items(count = placeholdersNeeded + numberOfItemsPerRow*numberOfRows) {
+        items(count = placeholdersNeeded + numberOfItemsPerRow * numberOfRows) {
             if (pokemonLazyPagingItems.loadState.refresh is LoadState.Loading || pokemonLazyPagingItems.loadState.append is LoadState.Loading)
                 PokemonListItemLoading(itemHeight = 100.dp)
         }
@@ -125,7 +123,7 @@ internal fun BoxScope.PokemonList(
         item {
             if (pokemonLazyPagingItems.loadState.append.endOfPaginationReached) {
                 Text(
-                    text = "No more pokemons to load",
+                    text = if (pokemonLazyPagingItems.itemCount == 0) "No pokemons matching the selected filters" else "No more pokemons to load",
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
