@@ -133,6 +133,7 @@ fun PokemonListScreen(
                 pokemonLazyPagingItems = pokemonLazyPagingItems,
                 enabled = filterFabContainerState == FabContainerState.Fab,
                 onItemClick = navigateToPokemonDetail,
+                onUpdateFavorite = onUpdateFavorite,
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     top = with(LocalDensity.current) { searchBarSize.height.toDp() + 32.dp },

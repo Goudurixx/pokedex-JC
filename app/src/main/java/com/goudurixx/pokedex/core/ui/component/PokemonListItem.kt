@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.core.ui.component
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
@@ -21,8 +22,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,13 +66,12 @@ import kotlin.math.roundToInt
 fun PokemonListItem(
     pokemon: PokemonListItemUiModel,
     enabled: Boolean,
-    favorite: Boolean,
-    onAddToFavorite: (Boolean) -> Unit,
     backgroundColor: Int,
     selectedFilter: SortOrderItem?,
     onItemClick: (Int, Int) -> Unit,
     modifier: Modifier = Modifier,
-    itemHeight: Dp = 100.dp
+    itemHeight: Dp = 100.dp,
+    onUpdateFavorite: (Int, Boolean) -> Unit
 ) {
     val dominantColor by remember(pokemon) { mutableIntStateOf(pokemon.color.color.toArgb()) }
 
@@ -110,7 +115,7 @@ fun PokemonListItem(
                 ) {
                     val state = painter.state
                     if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
-                        LaunchedEffect(Unit ){
+                        LaunchedEffect(Unit) {
                             atEnd = !atEnd
                         }
                         val loadingImage =
@@ -128,6 +133,27 @@ fun PokemonListItem(
                         SubcomposeAsyncImageContent()
                     }
                 }
+            }
+            IconButton(onClick = {
+                onUpdateFavorite(pokemon.id, !pokemon.isFavorite)
+            }) {
+                AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
+                    if (targetFavorite) {
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.FavoriteBorder,
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
+                    }
+
+                }
+
             }
             Column(
                 modifier = Modifier
@@ -278,13 +304,13 @@ fun PokemonListItemPreview() {
                     color = PokemonColor.BLUE,
                     generationName = "generation-i",
                     index = 1,
+                    isFavorite = false
                 ),
                 enabled = true,
                 backgroundColor = Color.Red.toArgb(),
                 selectedFilter = null,
                 onItemClick = { _, _ -> },
-                favorite = true,
-                onAddToFavorite = {}
+                onUpdateFavorite = { _, _ -> }
             )
             Spacer(modifier = Modifier.size(8.dp))
             PokemonListItem(
@@ -298,14 +324,14 @@ fun PokemonListItemPreview() {
                     baseExperience = 64,
                     averageStat = 64.0,
                     color = PokemonColor.PURPLE,
-                    index = 1
+                    index = 1,
+                    isFavorite = true
                 ),
                 enabled = true,
                 backgroundColor = Color.Blue.toArgb(),
                 selectedFilter = null,
                 onItemClick = { _, _ -> },
-                favorite = false,
-                onAddToFavorite = {}
+                onUpdateFavorite = { _, _ -> }
             )
             Spacer(modifier = Modifier.size(8.dp))
             PokemonListItemLoading()

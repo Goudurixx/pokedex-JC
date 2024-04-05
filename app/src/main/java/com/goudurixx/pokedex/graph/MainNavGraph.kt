@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
 import com.goudurixx.pokedex.core.routing.models.Graph
 import com.goudurixx.pokedex.features.favorites.navigation.favoriteScreen
+import com.goudurixx.pokedex.features.favorites.navigation.navigateToFavorite
 import com.goudurixx.pokedex.features.home.navigation.homeScreen
 import com.goudurixx.pokedex.features.pokemap.navigation.pokeMap
 import com.goudurixx.pokedex.features.pokemon.navigation.navigateToPokemonDetail
@@ -135,7 +136,7 @@ fun MainNavGraph(
             navigateToPokemonDetail = navController::navigateToPokemonDetail,
             navigateToPokemonResultList = navController::navigateToPokemonResultList
         )
-        favoriteScreen()
+        favoriteScreen(navigateToPokemonDetail = navController::navigateToPokemonDetail)
         pokeMap(
             onBackClick = navController::popBackStack,
             navigateToPokemonDetail = navController::navigateToPokemonDetail,

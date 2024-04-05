@@ -53,6 +53,7 @@ import kotlinx.coroutines.launch
 internal fun BoxScope.PokemonList(
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
     onItemClick: (Int, Int) -> Unit,
+    onUpdateFavorite: (Int, Boolean) -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     selectedFilter: SortOrderItem? = null,
@@ -107,6 +108,7 @@ internal fun BoxScope.PokemonList(
                     backgroundColor = MaterialTheme.colorScheme.secondaryContainer.toArgb(),
                     selectedFilter = selectedFilter,
                     onItemClick = onItemClick,
+                    onUpdateFavorite = onUpdateFavorite,
                     itemHeight = 100.dp,
                     modifier = Modifier,
                 )

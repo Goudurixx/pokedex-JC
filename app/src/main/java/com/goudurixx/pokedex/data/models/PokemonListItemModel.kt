@@ -16,10 +16,11 @@ data class PokemonListItemModel(
     val averageStat: Double? = null,
     val colorId: Int? = null,
     val generationId: Int? = null,
-    val generationName: String? = null
+    val generationName: String? = null,
+    val isFavorite : Boolean
 )
 
-fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
+fun PokemonListItemResponse.toDataModel(isFavorite: Boolean): PokemonListItemModel {
     val id: Int = id ?: this.url?.trimIntFromUrl() ?: 0
     return PokemonListItemModel(
         index = id,
@@ -33,7 +34,8 @@ fun PokemonListItemResponse.toDataModel(): PokemonListItemModel {
         averageStat = averageStat,
         colorId = colorId,
         generationId = generationId,
-        generationName = generationName
+        generationName = generationName,
+        isFavorite = isFavorite
     )
 }
 
@@ -50,6 +52,7 @@ fun PokemonDaoModel.toDataModel(): PokemonListItemModel {
         averageStat = averageStat,
         colorId = colorId,
         generationId = generationId,
-        generationName = generationName
+        generationName = generationName,
+        isFavorite = isFavorite == 1
     )
 }

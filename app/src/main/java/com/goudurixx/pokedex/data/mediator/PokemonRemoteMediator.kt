@@ -12,8 +12,8 @@ import com.goudurixx.pokedex.core.database.PokedexDatabase
 import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
 import com.goudurixx.pokedex.core.database.models.toDaoModel
 import com.goudurixx.pokedex.data.datasources.PokemonRemoteDataSource
-import com.goudurixx.pokedex.data.models.toDataModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
+import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
@@ -51,19 +51,22 @@ class PokemonRemoteMediator @Inject constructor(
                         offset = loadKey,
                         orderBy = orderBy,
                         filterBy = filterBy
-                    ).toDataModel().results
+                    ).results
                 } catch (e: Exception) {
                     Log.e("PokemonRemoteMediator", "An error occured while trying to fetch list", e)
                     return MediatorResult.Error(e)
                 }
-
             pokedexDatabase.withTransaction {
+                val favoritePokemon = pokedexDatabase.pokemonDao().getAllFavoritePokemon().first()
                 if (loadType == LoadType.REFRESH) {
                     pokedexDatabase.pokemonDao().clearAll(pagingKey, System.currentTimeMillis() - 1200000)
                 }
 
                 val pokemonDaos = response.mapIndexed { index, pokemon ->
-                    pokemon.toDaoModel(index + loadKey, pagingKey)
+                    val isFavorite = favoritePokemon.any { favoritePokemon ->
+                        favoritePokemon.id == pokemon.id
+                    }
+                    pokemon.toDaoModel(index + loadKey, pagingKey, isFavorite)
                 }
                 pokedexDatabase.pokemonDao().upsertAll(pokemonDaos)
             }

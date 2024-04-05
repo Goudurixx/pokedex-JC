@@ -16,7 +16,8 @@ data class PokemonListItemUiModel(
     val averageStat: Double? = null,
     val color: PokemonColor,
     val generationId: Int? = null,
-    val generationName: String? = null
+    val generationName: String? = null,
+    val isFavorite : Boolean
 )
 
 fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiModel(
@@ -31,7 +32,8 @@ fun PokemonListItemModel.toUiModel(indexIn: Int? = null) = PokemonListItemUiMode
     averageStat = averageStat,
     color = colorId?.let { PokemonColor.entries.getOrNull(it) } ?: PokemonColor.UNKNOWN,
     generationId = generationId,
-    generationName = generationName
+    generationName = generationName,
+    isFavorite = isFavorite
 )
 
 fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
@@ -46,5 +48,6 @@ fun PokemonDaoModel.toUiModel() = PokemonListItemUiModel(
     averageStat = averageStat,
     color = colorId?.let { PokemonColor.entries.getOrNull(it) } ?: PokemonColor.UNKNOWN,
     generationId = generationId,
-    generationName = generationName
+    generationName = generationName,
+    isFavorite = isFavorite == 1
 )

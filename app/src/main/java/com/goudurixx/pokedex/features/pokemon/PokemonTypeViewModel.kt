@@ -64,6 +64,12 @@ class PokemonTypeViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateFavorite(pokemonId: Int, isFavorite: Boolean) {
+        viewModelScope.launch {
+            pokemonRepository.updateFavorite(pokemonId, isFavorite)
+        }
+    }
 }
 
 

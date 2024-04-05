@@ -103,4 +103,16 @@ class PokemonRepository @Inject constructor(
             pager!!
         }
     }
+
+    //TODO WILL NEED TO RETURN THE RESULT
+    override suspend fun updateFavorite(pokemonid: Int, isFavorite: Boolean) {
+        Log.e("PokemonRepository", "updateFavorite: $pokemonid, $isFavorite")
+        localDataSource.updateFavorite(pokemonid, isFavorite)
+    }
+
+    //TODO remove the map on map
+    override fun getAllFavoritePokemon(): Flow<List<PokemonListItemModel>> {
+       return localDataSource.getAllFavoritePokemon().map { it.map { it.toDataModel() } }
+    }
+
 }

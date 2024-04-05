@@ -42,6 +42,7 @@ fun PokemonTypeRoute(
         uiState = uiState,
         pokemonLazyPagingItems = pokemonLazyPagingItems,
         navigateToPokemonDetail = navigateToPokemonDetail,
+        onUpdateFavorite = viewModel::updateFavorite,
         onBackClick = onBackClick
     )
 }
@@ -52,6 +53,7 @@ fun PokemonTypeScreen(
     typeName: String,
     uiState: TypeUiState,
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
+    onUpdateFavorite: (Int, Boolean) -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
     onBackClick : () -> Unit
 ) {

@@ -4,43 +4,52 @@ import DockedSearchContainer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.goudurixx.pokedex.core.common.models.FilterByParameter
+import com.goudurixx.pokedex.core.ui.component.radarChart.DrawerItem
+import com.goudurixx.pokedex.core.ui.component.radarChart.ExpandableDrawer
 import com.goudurixx.pokedex.features.pokemon.SearchUiState
+import com.goudurixx.pokedex.features.pokemon.models.Generations
 import com.goudurixx.pokedex.features.pokemon.models.TypeColor
 
 @Composable
 fun HomeRoute(
     navigateToPokemonList: () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
-    navigateToType: (Int, String) -> Unit,
+    navigateToPokemonFavorite: () -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
     viewModel: HomeScreenViewModel = hiltViewModel(),
 ) {
 
@@ -55,7 +64,8 @@ fun HomeRoute(
         uiState = uiState,
         navigateToPokemonList = navigateToPokemonList,
         navigateToPokemonDetail = navigateToPokemonDetail,
-        navigateToType = navigateToType,
+        navigateToPokemonResultList = navigateToPokemonResultList,
+        navigateToPokemonFavorite = navigateToPokemonFavorite,
     )
 }
 
@@ -66,12 +76,16 @@ fun HomeScreen(
     onUpdateSearch: (String) -> Unit,
     uiState: HomeScreenUiState,
     navigateToPokemonList: () -> Unit,
+    navigateToPokemonFavorite: () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
-    navigateToType: (Int, String) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
 ) {
     var searchBarSize by remember { mutableStateOf(IntSize.Zero) }
-
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         DockedSearchContainer(
             query = search,
             onQueryChange = onUpdateSearch,
@@ -85,46 +99,81 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(top = searchBarSize.height.dp)
         ) {
             Text(
-                text = "Home Screen - Welcome to Pokedex!",
+                text = "Welcome to Pokedex!",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.titleLarge,
             )
-            if (uiState is HomeScreenUiState.Success) Text(text = "Home of ${uiState.pokemonCount} pokemons!")
-            OutlinedButton(onClick = navigateToPokemonList) {
-                Text(text = "Go to Pokemon List")
-            }
-            LazyHorizontalStaggeredGrid(
-                rows = StaggeredGridCells.Adaptive(32.dp),
-                modifier = Modifier
-                    .heightIn(max = 120.dp)
-                    .padding(8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        RoundedCornerShape(8.dp)
-                    ),
-                contentPadding = PaddingValues(8.dp)
-            ) {
-                items(TypeColor.entries) {
-                    OutlinedButton(
-                        onClick = { navigateToType(it.id, it.name) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = it.color
-                        ),
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxHeight(0.5f)
-                    ) {
-                        Text(text = it.name)
-                    }
+            if (uiState is HomeScreenUiState.Success) Text(
+                text = "Home of ${uiState.pokemonCount} pokemons",
+                Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                OutlinedIconButton(onClick = navigateToPokemonList) {
+                    Icon(
+                        imageVector = Icons.Default.Navigation,
+                        contentDescription = "navigate to pokemon list",
+                        modifier = Modifier.rotate(90f).fillMaxSize()
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Animation,
+                        contentDescription = "pokemon list",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.Red
+                    )
+                }
+                OutlinedIconButton(onClick = navigateToPokemonFavorite) {
+                    Icon(
+                        imageVector = Icons.Default.Navigation,
+                        contentDescription = "navigate to pokemon favorite",
+                        modifier = Modifier.rotate(90f).fillMaxSize()
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "favorite",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color.Red
+                    )
                 }
             }
+            ExpandableDrawer(
+                objectSize = 120.dp,
+                drawerTitle = "Types (${TypeColor.entries.size})",
+                itemList = TypeColor.entries.map {
+                    DrawerItem(it.id, it.name, it.color)
+                },
+                onItemClick = { id, name, color ->
+                    navigateToPokemonResultList(
+                        FilterByParameter.TYPE,
+                        id,
+                        name,
+                        color?.toArgb()
+                    )
+                }
+            )
+
+            ExpandableDrawer(
+                objectSize = 80.dp,
+                drawerTitle = "Generations (${Generations.entries.size})",
+                itemList = Generations.entries.map {
+                    DrawerItem(it.id, it.generationName)
+                },
+                onItemClick = { id, name, color ->
+                    navigateToPokemonResultList(
+                        FilterByParameter.GENERATION,
+                        id,
+                        "Generation $name",
+                        color?.toArgb()
+                    )
+                }
+            )
         }
     }
 }
