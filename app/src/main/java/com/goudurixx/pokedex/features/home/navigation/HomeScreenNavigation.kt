@@ -19,7 +19,7 @@ fun NavGraphBuilder.homeScreen(
     navigateToPokemonList : () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
     navigateToPokemonFavorite: () -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit
 ) {
     composable(route = homeRoute) {
         HomeRoute(

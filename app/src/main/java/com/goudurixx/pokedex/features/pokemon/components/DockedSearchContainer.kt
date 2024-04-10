@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import com.goudurixx.pokedex.core.common.models.OrderByValues
+import com.goudurixx.pokedex.core.utils.snakeCaseToLabel
 import com.goudurixx.pokedex.features.pokemon.SearchUiState
 import com.goudurixx.pokedex.features.pokemon.models.SortOrderItem
 import java.util.Locale
@@ -57,6 +58,7 @@ import java.util.Locale
 @Composable
 fun DockedSearchContainer(
     query: String,
+    onSearch: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     state: SearchUiState,
     modifier: Modifier = Modifier,
@@ -105,7 +107,7 @@ fun DockedSearchContainer(
                 sortFilterList.forEach { sortFilterItem ->
                     DropdownMenuItem(
                         text = {
-                            Text(text = sortFilterItem.parameter.parameterName)
+                            Text(text = sortFilterItem.parameter.parameterName.snakeCaseToLabel())
                         }, trailingIcon = {
                             sortFilterItem.order?.let {
                                 Icon(
@@ -186,6 +188,7 @@ fun DockedSearchContainer(
             isDockedSearchBarActive = isDockedSearchBarActive,
             onActiveChange = { isDockedSearchBarActive = it },
             query = query,
+            onSearch = onSearch,
             onQueryChange = onQueryChange,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
@@ -197,6 +200,7 @@ fun DockedSearchContainer(
             isDockedSearchBarActive = isDockedSearchBarActive,
             onActiveChange = { isDockedSearchBarActive = it },
             query = query,
+            onSearch = onSearch,
             onQueryChange = onQueryChange,
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
@@ -212,6 +216,7 @@ fun FullDeviceSearchBar(
     isDockedSearchBarActive: Boolean,
     onActiveChange: (Boolean) -> Unit,
     query: String,
+    onSearch: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     leadingIcon: @Composable() (() -> Unit),
     trailingIcon: @Composable() (() -> Unit),
@@ -221,7 +226,10 @@ fun FullDeviceSearchBar(
     DockedSearchBar(
         query = query,
         onQueryChange = onQueryChange,
-        onSearch = { onActiveChange(!isDockedSearchBarActive) }, //TODO: Implement search screen
+        onSearch = {
+            onSearch(it)
+            onActiveChange(!isDockedSearchBarActive)
+        },
         active = isDockedSearchBarActive,
         onActiveChange = onActiveChange,
         modifier = modifier
@@ -245,6 +253,7 @@ private fun CompactDeviceSearchBar(
     isDockedSearchBarActive: Boolean,
     onActiveChange: (Boolean) -> Unit,
     query: String,
+    onSearch: (String) -> Unit,
     onQueryChange: (String) -> Unit,
     leadingIcon: @Composable() (() -> Unit),
     trailingIcon: @Composable() (() -> Unit),
@@ -286,7 +295,8 @@ private fun CompactDeviceSearchBar(
             query = query,
             onQueryChange = onQueryChange,
             onSearch = {
-                //TODO: Implement search screen
+                onSearch(it)
+                onActiveChange(!isDockedSearchBarActive)
             },
             active = isDockedSearchBarActive,
             onActiveChange = onActiveChange,

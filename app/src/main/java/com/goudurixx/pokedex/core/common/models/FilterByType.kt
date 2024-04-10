@@ -3,8 +3,10 @@ package com.goudurixx.pokedex.core.common.models
 import com.apollographql.apollo3.api.Optional
 import com.goudurixx.pokedex.type.Boolean_comparison_exp
 import com.goudurixx.pokedex.type.Int_comparison_exp
+import com.goudurixx.pokedex.type.String_comparison_exp
 
 enum class FilterByParameter(val parameterName: String) {
+    NAME("name"),
     ID("id"),
     HEIGHT("height"),
     WEIGHT("weight"),
@@ -30,6 +32,11 @@ abstract class BaseFilterValue {
 data class BooleanFilterValue(val value: Boolean?) : BaseFilterValue() {
     override fun toFilterNetworkModel() =
         Optional.present(Boolean_comparison_exp(_eq = Optional.presentIfNotNull(value)))
+}
+
+data class StringFilterValue(val value: String?) : BaseFilterValue() {
+    override fun toFilterNetworkModel() =
+        Optional.present(String_comparison_exp(_regex = Optional.presentIfNotNull(value)))
 }
 
 data class IntRangeFilterValue(val value: IntRange) : BaseFilterValue() {

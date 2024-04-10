@@ -29,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.common.models.OrderByValues
 import com.goudurixx.pokedex.features.pokemon.components.PokemonList
 import com.goudurixx.pokedex.features.pokemon.models.BaseFilterItemUiModel
@@ -38,7 +39,8 @@ import com.goudurixx.pokedex.features.pokemon.models.SortOrderItem
 @Composable
 fun PokemonListRoute(
     navigateToPokemonDetail: (Int, Int) -> Unit,
-    viewModel: PokemonListViewModel = hiltViewModel()
+    viewModel: PokemonListViewModel = hiltViewModel(),
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit
 ) {
 
     val pokemonLazyPagingItems = viewModel.pokemonPagingFlow.collectAsLazyPagingItems()
@@ -59,6 +61,7 @@ fun PokemonListRoute(
         onResetFilter = viewModel::resetFilter,
         onUpdateFavorite = viewModel::updateFavorite,
         pokemonLazyPagingItems = pokemonLazyPagingItems,
+        navigateToPokemonResultList = navigateToPokemonResultList,
         navigateToPokemonDetail = navigateToPokemonDetail
     )
 }
@@ -77,6 +80,7 @@ fun PokemonListScreen(
     onUpdateFavorite: (Int, Boolean) -> Unit,
     pokemonLazyPagingItems: LazyPagingItems<PokemonListItemUiModel>,
     navigateToPokemonDetail: (Int, Int) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
 ) {
 
     var filterFabContainerState by remember { mutableStateOf(FabContainerState.Fab) }
@@ -93,7 +97,9 @@ fun PokemonListScreen(
     val backgroundColor = MaterialTheme.colorScheme.background
 
     Box(
-        Modifier.fillMaxSize().background(backgroundColor),
+        Modifier
+            .fillMaxSize()
+            .background(backgroundColor),
         contentAlignment = Alignment.TopCenter
     ) {
         Box(
@@ -125,7 +131,15 @@ fun PokemonListScreen(
                         )
                         drawRect(brush = brush)
                     },
-                state = searchState
+                state = searchState,
+                onSearch = {
+                    navigateToPokemonResultList(
+                        FilterByParameter.NAME,
+                        it, //VALUE
+                        it, //NAME OF THE SCREEN
+                        null
+                    )
+                },
             )
 
             PokemonList(

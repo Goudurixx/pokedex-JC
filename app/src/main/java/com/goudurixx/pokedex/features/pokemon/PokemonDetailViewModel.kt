@@ -16,12 +16,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PokemonDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    pokemonRepository: IPokemonRepository
+    val pokemonRepository: IPokemonRepository
 ) : ViewModel() {
 
     private val pokemonArgs = PokemonArgs(savedStateHandle)
@@ -63,9 +64,12 @@ class PokemonDetailViewModel @Inject constructor(
         when (it) {
             is Result.Loading -> PokemonDetailUiState.Loading
             is Result.Success -> {
-                PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
+                if(it.data.abilities == null || it.data.stats == null || it.data.types == null){
+                    PokemonDetailUiState.FallbackSuccess(it.data.toUiModel(pokemonArgs.color))
+                } else {
+                    PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
+                }
             }
-
             is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)
         }
     }.stateIn(
@@ -73,12 +77,20 @@ class PokemonDetailViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(),
         initialValue = PokemonDetailUiState.Loading
     )
+
+    fun updateFavorite(isFavorite: Boolean) {
+        viewModelScope.launch {
+            pokemonRepository.updateFavorite(pokemonArgs.id, isFavorite)
+        }
+    }
 }
 
 sealed interface PokemonDetailUiState {
     object Loading : PokemonDetailUiState
 
     class Success(val pokemon: PokemonDetailUiModel) : PokemonDetailUiState
+
+    class FallbackSuccess(val pokemon: PokemonDetailUiModel) : PokemonDetailUiState
 
     class Error(val error: Exception) : PokemonDetailUiState
 }

@@ -29,10 +29,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,7 +46,7 @@ fun HomeRoute(
     navigateToPokemonList: () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
     navigateToPokemonFavorite: () -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
     viewModel: HomeScreenViewModel = hiltViewModel(),
 ) {
 
@@ -78,7 +75,7 @@ fun HomeScreen(
     navigateToPokemonList: () -> Unit,
     navigateToPokemonFavorite: () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
 ) {
     var searchBarSize by remember { mutableStateOf(IntSize.Zero) }
     Box(
@@ -88,6 +85,14 @@ fun HomeScreen(
     ) {
         DockedSearchContainer(
             query = search,
+            onSearch = {
+                navigateToPokemonResultList(
+                    FilterByParameter.NAME,
+                    it, //VALUE
+                    it, //NAME OF THE SCREEN
+                    null
+                )
+            },
             onQueryChange = onUpdateSearch,
             onClickOnResult = navigateToPokemonDetail,
             modifier = Modifier.onSizeChanged { newSize ->
@@ -152,7 +157,7 @@ fun HomeScreen(
                 onItemClick = { id, name, color ->
                     navigateToPokemonResultList(
                         FilterByParameter.TYPE,
-                        id,
+                        id.toString(),
                         name,
                         color?.toArgb()
                     )
@@ -168,7 +173,7 @@ fun HomeScreen(
                 onItemClick = { id, name, color ->
                     navigateToPokemonResultList(
                         FilterByParameter.GENERATION,
-                        id,
+                        id.toString(),
                         "Generation $name",
                         color?.toArgb()
                     )

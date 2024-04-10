@@ -8,6 +8,7 @@ import androidx.paging.map
 import com.goudurixx.pokedex.core.common.models.FilterBy
 import com.goudurixx.pokedex.core.common.models.FilterByParameter.*
 import com.goudurixx.pokedex.core.common.models.ListFilterValue
+import com.goudurixx.pokedex.core.common.models.StringFilterValue
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.features.pokemon.models.toUiModel
 import com.goudurixx.pokedex.features.pokemon.navigation.PokemonResultListArgs
@@ -39,10 +40,18 @@ class PokemonResultListViewModel @Inject constructor(
                     TYPE -> FilterBy(
                         parameter = TYPE,
                         value = ListFilterValue(
-                            value = listOf(pokemonResultListArgs.filterByVal),
+                            value = listOf(pokemonResultListArgs.filterByVal.toInt()),
                             type = TYPE
                         )
                     )
+
+                    NAME -> FilterBy(
+                        parameter = NAME,
+                        value = StringFilterValue(
+                            value = pokemonResultListArgs.filterByVal,
+                        )
+                    )
+
                     ID -> TODO()
                     HEIGHT -> TODO()
                     WEIGHT -> TODO()
@@ -53,7 +62,7 @@ class PokemonResultListViewModel @Inject constructor(
                     GENERATION -> FilterBy(
                         parameter = GENERATION,
                         value = ListFilterValue(
-                            value = listOf(pokemonResultListArgs.filterByVal),
+                            value = listOf(pokemonResultListArgs.filterByVal.toInt()),
                             type = GENERATION
                         )
                     )

@@ -6,6 +6,7 @@ import com.goudurixx.pokedex.core.common.models.FilterBy
 import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.common.models.IntRangeFilterValue
 import com.goudurixx.pokedex.core.common.models.ListFilterValue
+import com.goudurixx.pokedex.core.common.models.StringFilterValue
 import com.goudurixx.pokedex.type.Int_comparison_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemon_bool_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemonspecies_bool_exp
@@ -22,6 +23,10 @@ fun List<FilterBy>.toWhereParametersNetworkModel(): WhereParametersNetworkModel 
             when (filterBy.parameter) {
                 FilterByParameter.ID -> Pokemon_v2_pokemon_bool_exp(
                     id = (filterBy.value as IntRangeFilterValue).toFilterNetworkModel()
+                )
+
+                FilterByParameter.NAME -> Pokemon_v2_pokemon_bool_exp(
+                    name = (filterBy.value as StringFilterValue).toFilterNetworkModel()
                 )
 
                 FilterByParameter.HEIGHT -> Pokemon_v2_pokemon_bool_exp(

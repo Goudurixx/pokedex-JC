@@ -19,6 +19,9 @@ interface PokemonDao {
     @Query("SELECT * FROM pokemon WHERE isFavorite = 1")
     fun getAllFavoritePokemon(): Flow<List<PokemonDaoModel>>
 
+    @Query("SELECT * FROM pokemon WHERE id = :pokemonId")
+    fun getPokemonDetail(pokemonId: Int): Flow<List<PokemonDaoModel>>
+
     @Query("UPDATE pokemon SET isFavorite = :isFavorite WHERE id = :pokemonId")
     suspend fun updateFavorite(pokemonId: Int, isFavorite: Int)
 

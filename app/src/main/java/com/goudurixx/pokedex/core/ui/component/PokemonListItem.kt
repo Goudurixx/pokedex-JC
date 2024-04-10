@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -134,27 +135,6 @@ fun PokemonListItem(
                     }
                 }
             }
-            IconButton(onClick = {
-                onUpdateFavorite(pokemon.id, !pokemon.isFavorite)
-            }) {
-                AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
-                    if (targetFavorite) {
-                        Icon(
-                            imageVector = Icons.Filled.Favorite,
-                            contentDescription = null,
-                            tint = Color.Red
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Filled.FavoriteBorder,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    }
-
-                }
-
-            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -181,28 +161,54 @@ fun PokemonListItem(
                     )
                 }
             }
-            pokemon.generationName?.let { generationName ->
-                val shape = RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 20.dp,
-                    bottomStart = 20.dp,
-                    bottomEnd = 0.dp
-                )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Top)
-                        .clip(shape)
-                        .background(Color(dominantColor).copy(alpha = 0.5f))
-                        .border(
-                            BorderStroke(2.dp, Color(dominantColor).copy(alpha = 0.3f)),
-                            shape = shape
-                        )
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = generationName.toUpperCase(Locale.ROOT)
-                            .removeRange("GEN".length, "GENERATION".length)
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Top)
+                    .fillMaxHeight()
+            ) {
+                pokemon.generationName?.let { generationName ->
+                    val shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 20.dp,
+                        bottomStart = 20.dp,
+                        bottomEnd = 0.dp
                     )
+                    Box(
+                        modifier = Modifier
+                            .clip(shape)
+                            .background(Color(dominantColor).copy(alpha = 0.5f))
+                            .border(
+                                BorderStroke(2.dp, Color(dominantColor).copy(alpha = 0.3f)),
+                                shape = shape
+                            )
+                            .padding(8.dp)
+                    ) {
+                        Text(
+                            text = generationName.toUpperCase(Locale.ROOT)
+                                .removeRange("GEN".length, "GENERATION".length)
+                        )
+                    }
+                }
+                IconButton(onClick = {
+                    onUpdateFavorite(pokemon.id, !pokemon.isFavorite)
+                }) {
+                    AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
+                        if (targetFavorite) {
+                            Icon(
+                                imageVector = Icons.Filled.Favorite,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color.Gray
+                            )
+                        }
+
+                    }
                 }
             }
         }
@@ -269,18 +275,30 @@ fun PokemonListItemLoading(itemHeight: Dp = 100.dp) {
                 bottomStart = 20.dp,
                 bottomEnd = 0.dp
             )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Top)
-                    .clip(shape)
-                    .border(
-                        BorderStroke(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-                        shape = shape
+            Column(Modifier.align(Alignment.Top)) {
+                Box(
+                    modifier = Modifier
+                        .clip(shape)
+                        .border(
+                            BorderStroke(
+                                2.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                            ),
+                            shape = shape
+                        )
+                        .width(64.dp)
+                        .height(32.dp)
+                        .shimmerEffect()
+                ) {
+                }
+               IconButton(onClick = { /*TODO*/ }, enabled = false) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = null,
+                        tint = Color.Transparent,
+                        modifier = Modifier.clip(RoundedCornerShape(16.dp)).shimmerEffect()
                     )
-                    .width(64.dp)
-                    .height(32.dp)
-                    .shimmerEffect()
-            ) {
+                }
             }
         }
     }

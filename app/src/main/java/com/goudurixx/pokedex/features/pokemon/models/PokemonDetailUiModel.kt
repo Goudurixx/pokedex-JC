@@ -9,15 +9,16 @@ import java.util.Locale
 data class PokemonDetailUiModel(
     val id: Int,
     val name: String,
-    val height: Int,
-    val weight: Int,
+    val height: Int?,
+    val weight: Int?,
     val imageUrl: String?,
-    val sprites: SpritesUiModel,
-    val cries: String,
-    val abilities: List<AbilityUiModel>,
-    val types: List<TypeUiModel>,
-    val stats: List<StatUiModel>,
-    val color : PokemonColor
+    val sprites: SpritesUiModel?,
+    val cries: String?,
+    val abilities: List<AbilityUiModel>?,
+    val types: List<TypeUiModel>?,
+    val stats: List<StatUiModel>?,
+    val color : PokemonColor,
+    val isFavorite: Boolean
 ){
     companion object {
         fun placeHolder(id : Int?, color : Int) = PokemonDetailUiModel(
@@ -26,7 +27,7 @@ data class PokemonDetailUiModel(
             height = 0,
             weight = 0,
             imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
-            cries = "",
+            cries = null,
             sprites = SpritesUiModel(),
             abilities = listOf(AbilityUiModel.placeHolder()),
             types = listOf(TypeUiModel(id = -1, name = "Loading...", color = Color.Gray)),
@@ -38,7 +39,8 @@ data class PokemonDetailUiModel(
                     effort = 0
                 ).toUiModel()
             },
-            color = PokemonColor.entries[color]
+            color = PokemonColor.entries[color],
+            isFavorite = false
         )
     }
 }
@@ -53,10 +55,11 @@ fun PokemonModel.toUiModel(color: Int?) = PokemonDetailUiModel(
     height = height,
     weight = weight,
     imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
-    cries = cries.latest,
-    sprites = sprites.toUiModel(),
-    abilities = abilities.map { it.toUiModel() },
-    types = types.map { it.toUiModel() },
-    stats = stats.map { it.toUiModel() },
-    color = PokemonColor.entries[color ?: 0]
+    cries = cries?.latest,
+    sprites = sprites?.toUiModel(),
+    abilities = abilities?.map { it.toUiModel() },
+    types = types?.map { it.toUiModel() },
+    stats = stats?.map { it.toUiModel() },
+    color = PokemonColor.entries[color ?: 0],
+    isFavorite = isFavorite
 )

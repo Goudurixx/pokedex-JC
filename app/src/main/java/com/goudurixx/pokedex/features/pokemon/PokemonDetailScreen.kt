@@ -45,6 +45,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Pentagon
 import androidx.compose.material.icons.filled.PlayArrow
@@ -127,12 +129,13 @@ import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
 import kotlinx.coroutines.delay
 import java.util.Locale
 import kotlin.math.min
+import kotlin.reflect.KFunction1
 
 @Composable
 fun PokemonDetailRoute(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
     pokemonId: Int? = null,
     backgroundColor: Int? = null,
     viewModel: PokemonDetailViewModel = hiltViewModel(),
@@ -149,6 +152,7 @@ fun PokemonDetailRoute(
         uiState = uiState,
         appDataUiState = appDataUiState,
         speciesUiState = speciesUiState,
+        updateFavorite = viewModel::updateFavorite,
         onBackClick = onBackClick,
         navigateToPokemonDetail = navigateToPokemonDetail,
         navigateToPokemonResultList = navigateToPokemonResultList,
@@ -166,9 +170,10 @@ fun PokemonDetailScreen(
     uiState: PokemonDetailUiState,
     appDataUiState: AppDataUiState,
     speciesUiState: PokemonSpeciesUiState,
+    updateFavorite: (Boolean) -> Unit,
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
     pokemonId: Int?,
     backgroundColor: Int,
 ) {
@@ -241,6 +246,26 @@ fun PokemonDetailScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
+                    IconButton(onClick = {
+                        updateFavorite(!pokemon.isFavorite)
+                    }) {
+                        AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
+                            if (targetFavorite) {
+                                Icon(
+                                    imageVector = Icons.Filled.Favorite,
+                                    contentDescription = null,
+                                    tint = Color.Red
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Filled.FavoriteBorder,
+                                    contentDescription = null,
+                                    tint = Color.Gray
+                                )
+                            }
+
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors().copy(
                     containerColor = Color(dominantColor).getContrastingColor()
@@ -273,6 +298,8 @@ fun PokemonDetailScreen(
         LaunchedEffect(uiState) {
             if (uiState is PokemonDetailUiState.Success)
                 pokemon = uiState.pokemon
+            if( uiState is PokemonDetailUiState.FallbackSuccess)
+                pokemon = uiState.pokemon
         }
         Box(
             modifier = Modifier
@@ -291,33 +318,37 @@ fun PokemonDetailScreen(
                     .background(columnBackgroundColor, RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                TypesContent(
-                    types = pokemon.types,
-                    onTypeClicked = { typeId, typeName, typeColor ->
-                        navigateToPokemonResultList(
-                            FilterByParameter.TYPE,
-                            typeId,
-                            typeName,
-                            typeColor
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp)
-                )
+                pokemon.types?.let { types ->
+                    TypesContent(
+                        types = types,
+                        onTypeClicked = { typeId, typeName, typeColor ->
+                            navigateToPokemonResultList(
+                                FilterByParameter.TYPE,
+                                typeId.toString(),
+                                typeName,
+                                typeColor
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 32.dp)
+                    )
+                }
                 AboutContent(
                     pokemon = pokemon, modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                 )
-                StatisticsContentWrapper(
-                    stats = pokemon.stats,
-                    appDataUiState = appDataUiState,
-                    color = pokemon.color.color,
-                    modifier = Modifier
-                        .heightIn(min = 200.dp, max = 300.dp)
-                        .fillMaxWidth()
-                )
+                pokemon.stats?.let { stats ->
+                    StatisticsContentWrapper(
+                        stats = stats,
+                        appDataUiState = appDataUiState,
+                        color = pokemon.color.color,
+                        modifier = Modifier
+                            .heightIn(min = 200.dp, max = 300.dp)
+                            .fillMaxWidth()
+                    )
+                }
 
                 EvolutionChainContent(
                     speciesUiState = speciesUiState,
@@ -326,6 +357,7 @@ fun PokemonDetailScreen(
                         .heightIn(min = 150.dp)
                         .fillMaxWidth()
                 )
+
             }
             PokemonImageContent(
                 pokemon = pokemon,
@@ -390,19 +422,21 @@ fun PokemonImageContent(
 
     var mediaPlayer: MediaPlayer? = null
 
-    try {
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            setDataSource(pokemon.cries)
-            prepareAsync() // might take long! (for buffering, etc)
+    pokemon.cries?.let { cries ->
+        try {
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(cries)
+                prepareAsync() // might take long! (for buffering, etc)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 
     Box(
@@ -432,12 +466,12 @@ fun PokemonImageContent(
                     .alpha(min(1f, transition / .2f))
 
             )
-
         }
 
         OutlinedIconButton(
             onClick = { mediaPlayer?.start() },
             modifier = Modifier.align(Alignment.CenterStart),
+            enabled = mediaPlayer != null,
             colors = IconButtonDefaults.outlinedIconButtonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
                     alpha = 0.5f
@@ -502,68 +536,83 @@ fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row {
-                Icon(
-                    imageVector = Icons.Default.FitnessCenter,
-                    contentDescription = "weight of the pokemon"
-                )
+        pokemon.weight?.let { weight ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.FitnessCenter,
+                        contentDescription = "weight of the pokemon"
+                    )
+                    Text(
+                        text = "$weight kg",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
                 Text(
-                    text = "${pokemon.weight} kg",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(8.dp)
+                    text = "Weight",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 8.sp,
+                        lineHeight = 12.sp
+                    )
                 )
             }
-            Text(
-                text = "Weight",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
         VerticalDivider(
             modifier = Modifier.fillMaxHeight(),
             thickness = Dp.Hairline,
             color = MaterialTheme.colorScheme.onSurface
         ) //TODO FIX THAT
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row {
-                Icon(
-                    imageVector = Icons.Default.Straighten,
-                    contentDescription = "height of the pokemon",
-                    modifier = Modifier.rotate(90f)
-                )
+        pokemon.height?.let { height ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.Straighten,
+                        contentDescription = "height of the pokemon",
+                        modifier = Modifier.rotate(90f)
+                    )
+                    Text(
+                        text = "$height m",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
                 Text(
-                    text = "${pokemon.height} m",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(8.dp)
+                    text = "Height",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 8.sp,
+                        lineHeight = 12.sp
+                    )
                 )
             }
-            Text(
-                text = "Height",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
         VerticalDivider(
             modifier = Modifier.fillMaxHeight(),
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.onSurface
         ) //TODO FIX THAT
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            pokemon.abilities.forEach { ability ->
+        pokemon.abilities?.let { abilities ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                abilities.forEach { ability ->
+                    Text(
+                        text = ability.name.capitalize(Locale.ROOT),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
                 Text(
-                    text = ability.name.capitalize(Locale.ROOT),
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "Moves",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 8.sp,
+                        lineHeight = 12.sp
+                    )
                 )
             }
-            Text(
-                text = "Moves",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
     }
 }
@@ -648,23 +697,6 @@ fun ColumnScope.StatisticsContentWrapper(
                 }
         }
     }
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.Default.Square, contentDescription = "min", tint = Color.Green)
-        Text(text = ": min ", style = MaterialTheme.typography.bodySmall)
-        Icon(Icons.Default.Square, contentDescription = "avg", tint = Color.Blue)
-        Text(text = ": avg ", style = MaterialTheme.typography.bodySmall)
-        Icon(Icons.Default.Square, contentDescription = "min", tint = Color.Red)
-        Text(text = ": max ", style = MaterialTheme.typography.bodySmall)
-
-    }
-
 }
 
 @Composable
@@ -760,7 +792,6 @@ fun StatisticsContentAsBarChart(
             }
         }
     }
-//    }
 }
 
 @Composable

@@ -42,7 +42,7 @@ fun NavController.navigateToPokemonDetail(
 internal fun NavGraphBuilder.pokemonDetailScreen(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
-    navigateToPokemonResultList: (FilterByParameter, Int, String, Int?) -> Unit
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit
 ) {
     composable(
         route = "$pokemonDetailRoute$pokemonIdParam={$pokemonIdParam}$pokemonColorParam={$pokemonColorParam}",
