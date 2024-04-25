@@ -14,21 +14,35 @@ android {
 
     defaultConfig {
         applicationId = "com.goudurixx.pokedex"
-        minSdk = 28
+        minSdk = 27
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-
+        versionCode = 100001
+        versionName = "1.0.0" // X.Y.Z; X = Major, Y = minor, Z = Patch level
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enables code shrinking, obfuscation, and optimization for only
+            // your project's release build type. Make sure to use a build
+            // variant with `isDebuggable=false`.
+            isMinifyEnabled = true
+
+            // Enables resource shrinking, which is performed by the
+            // Android Gradle plugin.
+            isShrinkResources = true
+
             proguardFiles(
+                // Includes the default ProGuard rules files that are packaged with
+                // the Android Gradle plugin. To learn more, go to the section about
+                // R8 configuration files.
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+
+                // Includes a local, custom Proguard rules file
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
+//            isDebuggable = true
         }
     }
     compileOptions {
