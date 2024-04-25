@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.apollographql.apollo3.api.Optional
 import com.goudurixx.pokedex.core.common.models.BooleanFilterValue
 import com.goudurixx.pokedex.core.common.models.FilterBy
@@ -13,6 +14,7 @@ import com.goudurixx.pokedex.type.Pokemon_v2_pokemonspecies_bool_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_bool_exp
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemontype_bool_exp
 
+@Keep
 data class WhereParametersNetworkModel(
     val parameters: List<Pokemon_v2_pokemon_bool_exp>
 )

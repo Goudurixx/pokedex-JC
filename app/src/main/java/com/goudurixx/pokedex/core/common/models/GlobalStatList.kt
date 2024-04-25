@@ -1,12 +1,15 @@
 package com.goudurixx.pokedex.core.common.models
 
+import androidx.annotation.Keep
 import com.google.gson.Gson
 
 
+@Keep
 data class GlobalStatList(
     val statList: List<PokemonStat>
 )
 
+@Keep
 data class PokemonStat(
     val id: Int,
     val name: String,

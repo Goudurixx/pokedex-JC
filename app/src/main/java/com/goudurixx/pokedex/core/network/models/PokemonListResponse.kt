@@ -1,8 +1,10 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.PokemonGetPagedListQuery
 import kotlinx.serialization.Serializable
 
+@Keep
 @Serializable
 data class PokemonListResponse(
     val count: Int? = null,

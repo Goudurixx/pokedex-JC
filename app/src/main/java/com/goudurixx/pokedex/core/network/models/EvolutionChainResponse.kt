@@ -1,15 +1,18 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.PokemonEvolutionChainQuery
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Keep
 data class EvolutionChainResponse(
     val id: Int,
     val pokemon_v2_pokemonspecies : List<EvolutionChainSpeciesResponse>,
 )
 
 @Serializable
+@Keep
 data class EvolutionChainSpeciesResponse(
     val name : String,
     val id: Int,

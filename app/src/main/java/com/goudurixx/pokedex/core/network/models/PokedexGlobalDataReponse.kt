@@ -1,9 +1,11 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.GetPokedexGlobalDataQuery
 import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.common.models.PokemonStat
 
+@Keep
 data class PokedexGlobalDataReponse(
     val totalPokemonCount: Int,
     val globalStatList: GlobalStatList,
