@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface IPokemonRepository {
 
     val appData: Flow<PokedexGlobalDataModel>
+    fun updateAppData(): Flow<PokedexGlobalDataModel>
 
     fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>? = null) :  Flow<PagingData<PokemonListItemModel>>
     fun getPokemonCompletion(query: String) : Flow<List<PokemonListItemModel>>

@@ -1,6 +1,8 @@
 package com.goudurixx.pokedex.features.pokemon.navigation
 
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -55,8 +57,13 @@ internal fun NavGraphBuilder.pokemonDetailScreen(
     ) {
         val id = it.arguments?.getInt(pokemonIdParam)
         val color = it.arguments?.getInt(pokemonColorParam)
+        val lifecycleOwner = LocalLifecycleOwner.current
+
         PokemonDetailRoute(
-            onBackClick = onBackClick,
+            onBackClick = {
+                val currentState = lifecycleOwner.lifecycle.currentState
+                if (currentState.isAtLeast(Lifecycle.State.RESUMED)) onBackClick()
+            },
             pokemonId = id,
             backgroundColor = color,
             navigateToPokemonDetail = { destId, pokemonColor ->

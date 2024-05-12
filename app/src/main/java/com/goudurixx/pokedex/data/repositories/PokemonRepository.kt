@@ -42,6 +42,10 @@ class PokemonRepository @Inject constructor(
     override val appData: Flow<PokedexGlobalDataModel> =
         PokedexGlobalDataRemoteMediator(remoteDataSource, pokedexDatabase).load()
 
+    override fun updateAppData(): Flow<PokedexGlobalDataModel> {
+        return PokedexGlobalDataRemoteMediator(remoteDataSource, pokedexDatabase, forceUpdate = true).load()
+    }
+
     override fun getPokemonPagerList(
         orderBy: OrderBy?,
         filterBy: List<FilterBy>?
@@ -59,18 +63,19 @@ class PokemonRepository @Inject constructor(
         val localPokemon = localDataSource.getPokemonDetail(id)
         val remotePokemon = flow { emit(remoteDataSource.getPokemonDetail(id)) }
         return localPokemon.combine(remotePokemon.asResultWithLoading()) { local, remote ->
-            when(remote){
-                is Result.Success ->  remote.data.toDataModel(local.first().isFavorite == 1)
+            when (remote) {
+                is Result.Success -> remote.data.toDataModel(local.first().isFavorite == 1)
                 else -> {
-                     val pokemon = local.first().toDataModel()
-                     PokemonModel(
-                         id = pokemon.id,
-                         name = pokemon.name,
-                         height = pokemon.height,
-                         weight = pokemon.weight,
-                         sprites = spritesFromUrl(pokemon.imageUrl),
-                         isFavorite = pokemon.isFavorite
-                     )}
+                    val pokemon = local.first().toDataModel()
+                    PokemonModel(
+                        id = pokemon.id,
+                        name = pokemon.name,
+                        height = pokemon.height,
+                        weight = pokemon.weight,
+                        sprites = spritesFromUrl(pokemon.imageUrl),
+                        isFavorite = pokemon.isFavorite
+                    )
+                }
             }
         }
     }

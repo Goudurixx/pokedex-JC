@@ -67,7 +67,7 @@ internal fun NavGraphBuilder.pokemonResultList(
         )) {
         val resultType = it.arguments?.get(pokemonFilterByParameterParam) as FilterByParameter
         val resultName = it.arguments?.getString(pokemonResultNameParam) ?: ""
-        val resultColor = it.arguments?.getInt(pokemonResultColorParam)
+        val resultColor = it.arguments?.getInt(pokemonResultColorParam).let {color -> if (color != -1) color else null }
         PokemonResultListRoute(
             resultType = resultType,
             resultName = resultName,

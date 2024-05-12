@@ -96,7 +96,7 @@ internal fun BoxScope.PokemonList(
     ) {
         items(
             count = pokemonLazyPagingItems.itemCount,
-            key = pokemonLazyPagingItems.itemKey { pokemon -> pokemon.index },
+            key = pokemonLazyPagingItems.itemKey { pokemon -> pokemon.id },
             contentType = pokemonLazyPagingItems.itemContentType { "Pokemon" }
         ) { index: Int ->
 

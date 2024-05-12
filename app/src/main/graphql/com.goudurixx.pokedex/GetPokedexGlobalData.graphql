@@ -38,4 +38,8 @@ query getPokedexGlobalData {
             id
         }
     }
+    pokemon_v2_generation {
+        id
+        name
+    }
 }

@@ -9,4 +9,14 @@
 
 
     <string name="pokemon_detail_screen_title">%1$s</string>
+
+    <string name="no_favorite_pokemon_card">You haven\'t added any pokemon to your favorites yet !</string>
+    <string name="home_of_pokemons">Home of %1$s pokemons</string>
+    <string name="last_updated">Last updated on %1$s</string>
+    <string name="welcome_typo">Welcome to your Pokedex!</string>
+    <plurals name="favorite_pokemons_card">
+        <item quantity="one">You added %d pokemon to your favorites !</item>
+        <item quantity="other">You added %d pokemons to your favorites !</item>
+    </plurals>
+
 </resources>

@@ -101,6 +101,14 @@ fun PokedexApp(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
                     ),
+                )
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
                 ),
         ) {
             if (appState.shouldShowNavRail) {
@@ -109,6 +117,7 @@ fun PokedexApp(
                     onNavigateToDestination = appState::navigateToTopLevelDestination,
                     currentDestination = appState.currentDestination,
                     modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surface)
                         .safeDrawingPadding(),
                 )
             }

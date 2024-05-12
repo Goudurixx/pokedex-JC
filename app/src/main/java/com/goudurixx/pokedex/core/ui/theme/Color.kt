@@ -93,6 +93,7 @@ val TypeDragon = Color(0xFF6F35FC)
 val TypeDark = Color(0xFF705746)
 val TypeSteel = Color(0xFFB7B7CE)
 val TypeFairy = Color(0xFFD685AD)
+val TypeStellar = Color(0xE62BFFFF)
 val TypeUnknown = Color(0xFF000000)
 val TypeShadow = Color(0xFF22016F)
 

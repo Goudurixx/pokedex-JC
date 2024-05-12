@@ -43,8 +43,8 @@ fun defaultBaseFilterItemUiModelList(appDataResult: PokedexGlobalDataModel) =
         ),
         ListFilterUiModel(
             FilterByParameter.GENERATION,
-            Generations.entries.toList().map {
-                Pair(GenerationUiModel(id = it.id, it.generationName), false)
+            appDataResult.generationList.map {
+                Pair(it.toUiModel(), false)
             }
         ),
         BooleanFilterUiModel(

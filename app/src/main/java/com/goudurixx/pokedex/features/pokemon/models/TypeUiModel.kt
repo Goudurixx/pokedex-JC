@@ -35,6 +35,7 @@ enum class TypeColor(val id: Int, val color: Color) {
     DRAGON(id = 16, color = TypeDragon),
     DARK(id = 17, color = TypeDark),
     FAIRY(id = 18, color = TypeFairy),
+    STELLAR(id = 19, color = TypeStellar),
     UNKNOWN(id = 10001, color = TypeUnknown),
     SHADOW(id = 10002, color = TypeShadow)
 }

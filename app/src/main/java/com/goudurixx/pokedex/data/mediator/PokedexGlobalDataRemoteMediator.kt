@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 class PokedexGlobalDataRemoteMediator @Inject constructor(
     private val remoteDataSource: PokemonRemoteDataSource,
-    private val pokedexDatabase: PokedexDatabase
+    private val pokedexDatabase: PokedexDatabase,
+    private val forceUpdate: Boolean = false
 ) {
     fun load(): Flow<PokedexGlobalDataModel> {
        return flow{
@@ -35,7 +36,7 @@ class PokedexGlobalDataRemoteMediator @Inject constructor(
                     null
                 }
 
-                if (localData == null || localData.lastUpdated < System.currentTimeMillis() - 24 * 60 * 60 * 1000) {
+                if (localData == null || localData.lastUpdated < System.currentTimeMillis() - 24 * 60 * 60 * 1000 || (forceUpdate && localData.lastUpdated < System.currentTimeMillis() + 2000)) {
                     val remoteData = remoteDataSource.getPokedexGlobalData().toDataModel()
                     pokedexDatabase.withTransaction {
                         pokedexDatabase.pokedexGlobalDataDao().insert(remoteData.toDaoModel())
