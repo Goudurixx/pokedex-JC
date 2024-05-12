@@ -160,51 +160,19 @@ fun HomeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(top = with(LocalDensity.current) { searchBarSize.height.toDp() + 16.dp })
         ) {
-            Text(
-                text = "Welcome to Pokedex!",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            if (uiState is HomeScreenUiState.Success) Text(
-                text = "Home of ${uiState.pokemonCount} pokemons",
-                Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-            )
-            Row(modifier = Modifier.fillMaxWidth()) {
-                OutlinedIconButton(onClick = navigateToPokemonList) {
-                    Icon(
-                        imageVector = Icons.Default.Navigation,
-                        contentDescription = "navigate to pokemon list",
-                        modifier = Modifier.rotate(90f).fillMaxSize()
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Animation,
-                        contentDescription = "pokemon list",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color.Red
-                    )
-                }
-                OutlinedIconButton(onClick = navigateToPokemonFavorite) {
-                    Icon(
-                        imageVector = Icons.Default.Navigation,
-                        contentDescription = "navigate to pokemon favorite",
-                        modifier = Modifier.rotate(90f).fillMaxSize()
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Favorite,
-                        contentDescription = "favorite",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color.Red
-                    )
-                }
 
             HomeCard(
                 uiState = uiState,
                 onUpdateAppData = onUpdateAppData
             )
+
+            if (favoriteUiState is FavoriteUiState.Success) {
+                FavoriteCard(
+                    favoriteUiState.favoritePokemon,
+                    navigateToPokemonDetail,
+                    navigateToPokemonFavorite,
+                    navigateToPokemonList
+                )
             }
             ExpandableDrawer(
                 objectSize = 120.dp,

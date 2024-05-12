@@ -54,13 +54,13 @@ class HomeScreenViewModel @Inject constructor(
         initialValue = SearchUiState.None
     )
 
-    val uiState: StateFlow<HomeScreenUiState> =
-        pokemonRepository.appData.asResultWithLoading().map {
     private val _uiState: MutableStateFlow<HomeScreenUiState> =
         MutableStateFlow(HomeScreenUiState.Loading)
     val uiState: StateFlow<HomeScreenUiState> = _uiState.asStateFlow()
 
 
+    val favoriteUiState: StateFlow<FavoriteUiState> =
+        pokemonRepository.getAllFavoritePokemon().asResultWithLoading().map {
             when (it) {
                 is Result.Loading -> {
                     HomeScreenUiState.Loading
@@ -143,7 +143,7 @@ class HomeScreenViewModel @Inject constructor(
 
 sealed interface HomeScreenUiState {
     object Loading : HomeScreenUiState
-    data class Success(val pokemonCount: Int) : HomeScreenUiState
     data class Success(val pokemonCount: Int, val lastUpdated: Long,val generationList : List<GenerationUiModel>) : HomeScreenUiState
+    data class SuccessReloading(val pokemonCount: Int, val lastUpdated: Long, val generationList : List<GenerationUiModel>) : HomeScreenUiState
     object Error : HomeScreenUiState
 }
