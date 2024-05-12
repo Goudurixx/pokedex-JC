@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.goudurixx.pokedex.core.utils.Result
+import com.goudurixx.pokedex.core.utils.asResult
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.data.models.PokedexGlobalDataModel
@@ -151,8 +152,9 @@ class PokemonListViewModel @Inject constructor(
 
     fun updateFavorite(pokemonId: Int, isFavorite: Boolean) {
         viewModelScope.launch {
-            Log.e("PokemonListViewModel", "updateFavorite: $pokemonId, $isFavorite")
-            pokemonRepository.updateFavorite(pokemonId, isFavorite)
+            pokemonRepository.updateFavorite(pokemonId, isFavorite).asResult().collect{result ->
+                Log.e("PokemonListViewModel", "updateFavorite: $result")
+            }
         }
     }
 }

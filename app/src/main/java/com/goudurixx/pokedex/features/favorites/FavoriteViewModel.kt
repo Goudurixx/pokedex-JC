@@ -4,16 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.goudurixx.pokedex.core.utils.Result
+import com.goudurixx.pokedex.core.utils.asResult
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
-import com.goudurixx.pokedex.features.pokemon.SearchUiState
 import com.goudurixx.pokedex.features.pokemon.models.PokemonListItemUiModel
 import com.goudurixx.pokedex.features.pokemon.models.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -44,7 +41,8 @@ class FavoriteViewModel @Inject constructor(
     fun updateFavorite(pokemonId: Int, isFavorite: Boolean) {
         viewModelScope.launch {
             Log.e("PokemonListViewModel", "updateFavorite: $pokemonId, $isFavorite")
-            pokemonRepository.updateFavorite(pokemonId, isFavorite)
+            pokemonRepository.updateFavorite(pokemonId, isFavorite).asResult().collect{result ->
+                Log.e("PokemonListViewModel", "updateFavorite: $result")            }
         }
     }
 }

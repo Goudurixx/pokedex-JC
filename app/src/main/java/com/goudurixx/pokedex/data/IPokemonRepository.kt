@@ -19,7 +19,7 @@ interface IPokemonRepository {
     fun getPokemonDetail(id: Int) : Flow<PokemonModel>
 
     fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel>
-    suspend fun updateFavorite(pokemonId: Int, isFavorite: Boolean)
+    suspend fun updateFavorite(pokemonId: Int, isFavorite: Boolean): Flow<Unit>
 
     fun getAllFavoritePokemon() : Flow<List<PokemonListItemModel>>
 }

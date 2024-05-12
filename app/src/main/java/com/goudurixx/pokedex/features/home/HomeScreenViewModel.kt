@@ -63,19 +63,21 @@ class HomeScreenViewModel @Inject constructor(
         pokemonRepository.getAllFavoritePokemon().asResultWithLoading().map {
             when (it) {
                 is Result.Loading -> {
-                    HomeScreenUiState.Loading
+                    FavoriteUiState.Loading
                 }
+
                 is Result.Success -> {
-                    HomeScreenUiState.Success(it.data.totalPokemonCount)
+                    FavoriteUiState.Success(it.data.map { it.toUiModel() })
                 }
+
                 is Result.Error -> {
-                    HomeScreenUiState.Error
+                    FavoriteUiState.Error
                 }
             }
         }.stateIn(
             scope = viewModelScope,
-            initialValue = HomeScreenUiState.Loading,
-            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = FavoriteUiState.Loading,
+            started = SharingStarted.WhileSubscribed(),
         )
 
     init {
@@ -146,4 +148,12 @@ sealed interface HomeScreenUiState {
     data class Success(val pokemonCount: Int, val lastUpdated: Long,val generationList : List<GenerationUiModel>) : HomeScreenUiState
     data class SuccessReloading(val pokemonCount: Int, val lastUpdated: Long, val generationList : List<GenerationUiModel>) : HomeScreenUiState
     object Error : HomeScreenUiState
+}
+
+sealed interface FavoriteUiState {
+    object Loading : FavoriteUiState
+    data class Success(val favoritePokemon: List<PokemonListItemUiModel>) :
+        FavoriteUiState
+
+    object Error : FavoriteUiState
 }

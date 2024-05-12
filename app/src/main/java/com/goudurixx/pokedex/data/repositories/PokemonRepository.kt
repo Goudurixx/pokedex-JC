@@ -129,10 +129,10 @@ class PokemonRepository @Inject constructor(
         }
     }
 
-    //TODO WILL NEED TO RETURN THE RESULT
-    override suspend fun updateFavorite(pokemonid: Int, isFavorite: Boolean) {
-        Log.e("PokemonRepository", "updateFavorite: $pokemonid, $isFavorite")
-        localDataSource.updateFavorite(pokemonid, isFavorite)
+    override suspend fun updateFavorite(pokemonid: Int, isFavorite: Boolean): Flow<Unit> {
+        return flow {
+            emit(localDataSource.updateFavorite(pokemonid, isFavorite))
+        }
     }
 
     //TODO remove the map on map

@@ -93,6 +93,7 @@ fun HomeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val search by viewModel.search.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
+    val favoriteUiState by viewModel.favoriteUiState.collectAsStateWithLifecycle()
 
     HomeScreen(
         search = search,
@@ -100,6 +101,7 @@ fun HomeRoute(
         onUpdateSearch = viewModel::updateSearch,
         onUpdateAppData = viewModel::updateAppData,
         uiState = uiState,
+        favoriteUiState = favoriteUiState,
         navigateToPokemonList = navigateToPokemonList,
         navigateToPokemonDetail = navigateToPokemonDetail,
         navigateToPokemonResultList = navigateToPokemonResultList,
@@ -114,6 +116,7 @@ fun HomeScreen(
     onUpdateSearch: (String) -> Unit,
     onUpdateAppData: () -> Unit,
     uiState: HomeScreenUiState,
+    favoriteUiState: FavoriteUiState,
     navigateToPokemonList: () -> Unit,
     navigateToPokemonFavorite: () -> Unit,
     navigateToPokemonDetail: (Int, Int) -> Unit,
@@ -216,6 +219,230 @@ fun HomeScreen(
                         )
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeCard(uiState: HomeScreenUiState, onUpdateAppData: () -> Unit) {
+
+    val infiniteTransition = rememberInfiniteTransition()
+    var targetValue by remember { mutableStateOf(0F) }
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0F,
+        targetValue = targetValue,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "Loading"
+    )
+
+    LaunchedEffect(uiState) {
+        targetValue = when (uiState) {
+            is HomeScreenUiState.Success -> {
+                0F
+            }
+
+            else -> {
+                360F
+            }
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.elevatedCardElevation(8.dp)
+    ) {
+        Box {
+            Image(
+                painter = painterResource(id = R.drawable.pokeball_wallpaper),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            )
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    .padding(16.dp)
+                    .align(Alignment.BottomStart)
+            ) {
+                if (uiState is HomeScreenUiState.Success || uiState is HomeScreenUiState.SuccessReloading) {
+                    val pokemonCount = when (uiState) {
+                        is HomeScreenUiState.Success -> uiState.pokemonCount
+                        is HomeScreenUiState.SuccessReloading -> uiState.pokemonCount
+                        else -> 0
+                    }
+                    val lastUpdated = when (uiState) {
+                        is HomeScreenUiState.Success -> uiState.lastUpdated
+                        is HomeScreenUiState.SuccessReloading -> uiState.lastUpdated
+                        else -> 0
+                    }
+                    Text(
+                        text = stringResource(R.string.home_of_pokemons, pokemonCount),
+                        modifier = Modifier,
+                        textAlign = TextAlign.Start,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Row(Modifier.fillMaxWidth()) {
+                        var textSize by remember {
+                            mutableStateOf(IntSize.Zero)
+                        }
+                        Text(
+                            text = stringResource(
+                                R.string.last_updated,
+                                Date(lastUpdated).toLocaleString()
+                            ),
+                            modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                                textSize = layoutCoordinates.size
+                            },
+                            textAlign = TextAlign.Start,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                        IconButton(
+                            onClick = onUpdateAppData,
+                            modifier = Modifier.size(with(LocalDensity.current) { textSize.height.toDp() })
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.rotate(angle),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationGraphicsApi::class)
+@Composable
+private fun FavoriteCard(
+    pokemons: List<PokemonListItemUiModel>,
+    navigateToPokemonDetail: (Int, Int) -> Unit,
+    navigateToPokemonFavorite: () -> Unit,
+    navigateToPokemonList: () -> Unit
+) {
+    val itemHeight = 100.dp
+    var atEnd by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+    ) {
+        Text(
+            text = "Favorite",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp)
+        )
+        Text(
+            text = if (pokemons.isEmpty())
+                stringResource(id = R.string.no_favorite_pokemon_card)
+            else pluralStringResource(
+                id = R.plurals.favorite_pokemons_card,
+                pokemons.size,
+                pokemons.size
+            ),
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(itemHeight + 16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            item {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            items(pokemons) { pokemon ->
+                val dominantColor by remember(pokemon) { mutableIntStateOf(pokemon.color.color.toArgb()) }
+                Surface(
+                    modifier = Modifier
+                        .size(itemHeight)
+                        .padding(8.dp)
+//                        .clip(RoundedCornerShape(20.dp))
+//                        .background(Color(dominantColor).copy(alpha = 0.5f))
+//                        .border(
+//                            BorderStroke(2.dp, Color(dominantColor).copy(alpha = 0.3f)),
+//                            shape = RoundedCornerShape(20.dp)
+//                        )
+//                        .padding(8.dp),
+                    ,
+                    shape = RoundedCornerShape(20.dp),
+                    shadowElevation = 8.dp,
+                    border = BorderStroke(2.dp, Color(dominantColor).copy(alpha = 0.3f))
+                ) {
+                    SubcomposeAsyncImage(
+                        model = pokemon.imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clickable {
+                                navigateToPokemonDetail(
+                                    pokemon.id,
+                                    pokemon.color.ordinal
+                                )
+                            }
+                            .background(Color(dominantColor).copy(alpha = 0.5f))
+                            .padding(8.dp)
+                    ) {
+                        val state = painter.state
+                        if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
+                            LaunchedEffect(Unit) {
+                                atEnd = !atEnd
+                            }
+                            val loadingImage =
+                                AnimatedImageVector.animatedVectorResource(R.drawable.pokeball_loader)
+                            Image(
+                                rememberAnimatedVectorPainter(loadingImage, atEnd),
+                                null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .alpha(0.3f)
+                                    .fillMaxSize()
+                            )
+                        } else {
+                            SubcomposeAsyncImageContent()
+                        }
+                    }
+                }
+            }
+            item {
+                Surface(
+                    modifier = Modifier
+                        .size(itemHeight * (if (pokemons.isEmpty()) 1f else 0.8f))
+                        .padding(8.dp)
+                        .weight(1f),
+                    shape = RoundedCornerShape(20.dp),
+                    shadowElevation = 4.dp,
+                    border = BorderStroke(
+                        2.dp,
+                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable(onClick = navigateToPokemonList)
+                    )
+                }
             }
         }
     }

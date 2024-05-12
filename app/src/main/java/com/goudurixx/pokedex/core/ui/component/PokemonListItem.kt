@@ -1,6 +1,5 @@
 package com.goudurixx.pokedex.core.ui.component
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
@@ -128,7 +127,6 @@ fun PokemonListItem(
                             modifier = Modifier
                                 .alpha(0.3f)
                                 .fillMaxSize()
-
                         )
                     } else {
                         SubcomposeAsyncImageContent()
@@ -193,21 +191,18 @@ fun PokemonListItem(
                 IconButton(onClick = {
                     onUpdateFavorite(pokemon.id, !pokemon.isFavorite)
                 }) {
-                    AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
-                        if (targetFavorite) {
-                            Icon(
-                                imageVector = Icons.Filled.Favorite,
-                                contentDescription = null,
-                                tint = Color.Red
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Filled.FavoriteBorder,
-                                contentDescription = null,
-                                tint = Color.Gray
-                            )
-                        }
-
+                    if (pokemon.isFavorite) {
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = Color.Red
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.FavoriteBorder,
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
                     }
                 }
             }
@@ -291,12 +286,14 @@ fun PokemonListItemLoading(itemHeight: Dp = 100.dp) {
                         .shimmerEffect()
                 ) {
                 }
-               IconButton(onClick = { /*TODO*/ }, enabled = false) {
+                IconButton(onClick = { /*TODO*/ }, enabled = false) {
                     Icon(
                         imageVector = Icons.Filled.Favorite,
                         contentDescription = null,
                         tint = Color.Transparent,
-                        modifier = Modifier.clip(RoundedCornerShape(16.dp)).shimmerEffect()
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .shimmerEffect()
                     )
                 }
             }

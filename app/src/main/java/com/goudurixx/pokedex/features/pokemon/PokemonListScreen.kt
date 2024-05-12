@@ -5,7 +5,6 @@ import FabContainer
 import FabContainerState
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,8 +97,7 @@ fun PokemonListScreen(
 
     Box(
         Modifier
-            .fillMaxSize()
-            .background(backgroundColor),
+            .fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         Box(
@@ -136,7 +134,7 @@ fun PokemonListScreen(
                     navigateToPokemonResultList(
                         FilterByParameter.NAME,
                         it, //VALUE
-                        it, //NAME OF THE SCREEN
+                        "name contains : $it", //NAME OF THE SCREEN
                         null
                     )
                 },

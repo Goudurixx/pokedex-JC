@@ -6,13 +6,14 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,12 +66,8 @@ fun ExpandableDrawer(
         },
         modifier = Modifier
             .wrapContentHeight()
-            .padding(8.dp)
+            .padding(vertical = 16.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(
-                MaterialTheme.colorScheme.primaryContainer,
-                RoundedCornerShape(8.dp)
-            )
     ) { expanded ->
         Column {
             Row(
@@ -82,7 +78,17 @@ fun ExpandableDrawer(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = drawerTitle, modifier = Modifier.padding(8.dp))
+                Row{
+                    Text(
+                        text = drawerTitle,
+                        modifier = Modifier.padding(start = 8.dp),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                    Text(
+                        text = "(${itemList.size})",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
                 IconButton(
                     onClick = { expandedDrawer = !expandedDrawer },
                 ) {
@@ -92,7 +98,6 @@ fun ExpandableDrawer(
                     )
                 }
             }
-            HorizontalDivider()
             if (expanded) {
                 val chunkedData = itemList.chunked(calculateColumns(objectSize = objectSize))
                 Column {
@@ -125,6 +130,9 @@ fun ExpandableDrawer(
             } else LazyRow(
                 modifier = Modifier,
             ) {
+                item {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
                 items(itemList) {
                     OutlinedButton(
                         onClick = {
@@ -137,6 +145,7 @@ fun ExpandableDrawer(
                         colors = it.color?.let { color ->
                             ButtonDefaults.buttonColors(containerColor = color)
                         } ?: ButtonDefaults.buttonColors(),
+                        shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
                             .padding(4.dp)
                     ) {

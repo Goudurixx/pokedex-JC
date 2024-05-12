@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.features.pokemon
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -87,7 +88,9 @@ class PokemonResultListViewModel @Inject constructor(
 
     fun updateFavorite(pokemonId: Int, isFavorite: Boolean) {
         viewModelScope.launch {
-            pokemonRepository.updateFavorite(pokemonId, isFavorite)
+            pokemonRepository.updateFavorite(pokemonId, isFavorite).collect { result ->
+                Log.e("PokemonResultListViewModel", "updateFavorite: $result")
+            }
         }
     }
 }

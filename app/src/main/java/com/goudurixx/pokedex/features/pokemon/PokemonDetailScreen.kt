@@ -2,14 +2,15 @@ package com.goudurixx.pokedex.features.pokemon
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
@@ -50,7 +51,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Pentagon
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Square
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -74,7 +74,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -126,10 +125,8 @@ import com.goudurixx.pokedex.features.pokemon.models.EvolutionChainSpeciesUiMode
 import com.goudurixx.pokedex.features.pokemon.models.PokemonDetailUiModel
 import com.goudurixx.pokedex.features.pokemon.models.StatUiModel
 import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
-import kotlinx.coroutines.delay
 import java.util.Locale
 import kotlin.math.min
-import kotlin.reflect.KFunction1
 
 @Composable
 fun PokemonDetailRoute(
@@ -192,7 +189,12 @@ fun PokemonDetailScreen(
             scrollState.value.toFloat() / 100
         }
     }
-    val pokeballImageVector = ImageVector.vectorResource(R.drawable.pokeball)
+    val isFullyVisible by remember(uiState) {
+        derivedStateOf<Boolean> {
+            uiState is PokemonDetailUiState.Success
+        }
+    }
+    val pokebalImageVector = ImageVector.vectorResource(R.drawable.pokeball)
     var atEnd by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -249,22 +251,32 @@ fun PokemonDetailScreen(
                     IconButton(onClick = {
                         updateFavorite(!pokemon.isFavorite)
                     }) {
-                        AnimatedContent(targetState = pokemon.isFavorite) { targetFavorite ->
-                            if (targetFavorite) {
-                                Icon(
-                                    imageVector = Icons.Filled.Favorite,
-                                    contentDescription = null,
-                                    tint = Color.Red
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Filled.FavoriteBorder,
-                                    contentDescription = null,
-                                    tint = Color.Gray
-                                )
-                            }
-
+                        //TODO FIX ICON GETTING STUCK IN ONE STATE
+//                        AnimatedContent(
+//                            targetState = pokemon,
+//                            contentKey = { state ->
+//                                // Define a mapping between `targetState` and a key.
+//                                // This function should return a key that represents the parts of `targetState` that should trigger a transition.
+//                                // For example, if `targetState` is a data class with two properties and you only want to trigger a transition when the first property changes, you can return the first property as the key.
+//                                state.isFavorite
+//                            },
+//                            label = ""
+//                        ) { target ->
+                        if (pokemon.isFavorite) {
+                            Icon(
+                                imageVector = Icons.Filled.Favorite,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color.Gray
+                            )
                         }
+
+//                        }
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors().copy(
@@ -285,21 +297,13 @@ fun PokemonDetailScreen(
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
 
-        AnimatedVisibility(
-            visible = uiState is PokemonDetailUiState.Loading,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
-            ) { MyIndicator(Modifier.padding(it)) }
-        }
         LaunchedEffect(uiState) {
-            if (uiState is PokemonDetailUiState.Success)
+            if (uiState is PokemonDetailUiState.Success) {
                 pokemon = uiState.pokemon
-            if( uiState is PokemonDetailUiState.FallbackSuccess)
+            }
+            if (uiState is PokemonDetailUiState.FallbackSuccess) {
                 pokemon = uiState.pokemon
+            }
         }
         Box(
             modifier = Modifier
@@ -318,36 +322,42 @@ fun PokemonDetailScreen(
                     .background(columnBackgroundColor, RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                pokemon.types?.let { types ->
-                    TypesContent(
-                        types = types,
-                        onTypeClicked = { typeId, typeName, typeColor ->
-                            navigateToPokemonResultList(
-                                FilterByParameter.TYPE,
-                                typeId.toString(),
-                                typeName,
-                                typeColor
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp)
-                    )
-                }
                 AboutContent(
-                    pokemon = pokemon, modifier = Modifier
+                    pokemon = pokemon,
+                    isFullyVisible = isFullyVisible,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                 )
-                pokemon.stats?.let { stats ->
-                    StatisticsContentWrapper(
-                        stats = stats,
-                        appDataUiState = appDataUiState,
-                        color = pokemon.color.color,
-                        modifier = Modifier
-                            .heightIn(min = 200.dp, max = 300.dp)
-                            .fillMaxWidth()
-                    )
+                AnimatedVisibility(visible = isFullyVisible, modifier = Modifier.fillMaxWidth()) {
+                    pokemon.types?.let { types ->
+                        TypesContent(
+                            types = types,
+                            onTypeClicked = { typeId, typeName, typeColor ->
+                                navigateToPokemonResultList(
+                                    FilterByParameter.TYPE,
+                                    typeId.toString(),
+                                    typeName,
+                                    typeColor
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp)
+                        )
+                    }
+                }
+                AnimatedVisibility(visible = isFullyVisible, modifier = Modifier.fillMaxWidth()) {
+                    pokemon.stats?.let { stats ->
+                        StatisticsContentWrapper(
+                            stats = stats,
+                            appDataUiState = appDataUiState,
+                            color = pokemon.color.color,
+                            modifier = Modifier
+                                .heightIn(min = 200.dp, max = 300.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
 
                 EvolutionChainContent(
@@ -378,7 +388,9 @@ private fun PokemonDetailScreenErrorContent(modifier: Modifier) {
         val context = LocalContext.current
         val imageLoader = ImageLoader.Builder(context)
             .components {
-                add(ImageDecoderDecoder.Factory())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    add(ImageDecoderDecoder.Factory())
+                }
             }
             .build()
         Column(modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -524,7 +536,11 @@ fun TypesContent(
 }
 
 @Composable
-fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
+fun AboutContent(
+    pokemon: PokemonDetailUiModel,
+    isFullyVisible: Boolean,
+    modifier: Modifier,
+) {
     Text(
         text = "About",
         modifier = modifier,
@@ -595,23 +611,25 @@ fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.onSurface
         ) //TODO FIX THAT
-        pokemon.abilities?.let { abilities ->
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                abilities.forEach { ability ->
+        AnimatedVisibility(visible = isFullyVisible, enter = fadeIn() + expandHorizontally()) {
+            pokemon.abilities?.let { abilities ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    abilities.forEach { ability ->
+                        Text(
+                            text = ability.name.capitalize(Locale.ROOT),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                     Text(
-                        text = ability.name.capitalize(Locale.ROOT),
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "Moves",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 8.sp,
+                            lineHeight = 12.sp
+                        )
                     )
                 }
-                Text(
-                    text = "Moves",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontSize = 8.sp,
-                        lineHeight = 12.sp
-                    )
-                )
             }
         }
     }
@@ -815,18 +833,20 @@ fun StatisticsContentAsRadarChart(
         beginAnimation = true
     }
 
-    val minPolygon = Polygon(
-        values = globalStatList.statList.map { it.min.toDouble() },
-        unit = "",
-        style = PolygonStyle(
-            fillColor = Color.Transparent,
-            fillColorAlpha = 0f,
-            borderColor = Color.Green,
-            borderColorAlpha = 0.9f,
-            borderStrokeWidth = 1f,
-            borderStrokeCap = StrokeCap.Butt
+    val minPolygon = remember {
+        Polygon(
+            values = globalStatList.statList.map { it.min.toDouble() },
+            unit = "",
+            style = PolygonStyle(
+                fillColor = Color.Transparent,
+                fillColorAlpha = 0f,
+                borderColor = Color.Green,
+                borderColorAlpha = 0.9f,
+                borderStrokeWidth = 1f,
+                borderStrokeCap = StrokeCap.Butt
+            )
         )
-    )
+    }
     val avgPolygon = remember {
         Polygon(
             values = globalStatList.statList.map { it.avg },
@@ -866,6 +886,7 @@ fun StatisticsContentAsRadarChart(
             )
         },
         labelsStyle = MaterialTheme.typography.bodySmall.copy(
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         ),
         netLinesStyle = NetLinesStyle(
@@ -1026,100 +1047,3 @@ fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Un
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun PokemonDetailScreenPreview() {
-//    CompositionLocalProvider(LocalContext provides LocalContext.current) {
-//        PokedexTheme {
-//            val title by remember {
-//                mutableStateOf("Pachyradjah N°0879")
-//            }
-//            val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
-//            val dominantColor by remember { mutableIntStateOf(backgroundColor.toArgb()) }
-//
-//            val statList = listOf(
-//                Pair("PV", 92),
-//                Pair("Attaque", 130),
-//                Pair("Défense", 115),
-//                Pair("Attaque Spéciale", 80),
-//                Pair("Défense Spéciale", 85),
-//                Pair("Vitesse", 55)
-//            )
-//
-//            val pokemonDetail = PokemonDetailUiModel(
-//                id = 879,
-//                name = "pachyradjah",
-//                weight = 650,
-//                height = 3,
-//                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/879.png",
-//                cries = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/cries/879.mp3",
-//                abilities = listOf(
-//                    AbilityUiModel("Régé-Force", isHidden = false, slot = 1),
-//                    AbilityUiModel("Fermeté", isHidden = false, slot = 2)
-//                ),
-//                types = listOf(
-//                    TypeUiModel(id = 1, name = "Psychic", color = TypePsychic),
-//                ),
-//                stats = statList.map { (name, value) ->
-//                    StatUiModel(
-//                        statName = name,
-//                        statId = statList.indexOfFirst { it.first == name } + 1,
-//                        value = value,
-//                        effort = 0,
-//                        color = when (name) {
-//                            "PV" -> Color(0xFFA8A878)
-//                            "Attaque" -> Color(0xFFEE8130)
-//                            "Défense" -> Color(0xFF6390F0)
-//                            "Attaque Spéciale" -> Color(0xFFF7D02C)
-//                            "Défense Spéciale" -> Color(0xFF96D9D6)
-//                            "Vitesse" -> Color(0xFFC5C5C5)
-//                            else -> Color.Black
-//                        }
-//                    )
-//                },
-//                sprites = SpritesUiModel(),
-//            )
-//            PokemonDetailScreen(
-//                uiState = PokemonDetailUiState.Loading,
-////                uiState = PokemonDetailUiState.Success(pokemonDetail),
-//                speciesUiState = PokemonSpeciesUiState.Loading,
-//                onBackClick = { /*TODO*/ },
-//                navigateToPokemonDetail = { _, _ -> },
-//                pokemonId = 879,
-//                backgroundColor = dominantColor,
-//                globalStatList = globalStatList
-//            )
-//        }
-//    }
-//}
-
-@Composable
-fun MyIndicator(modifier: Modifier = Modifier) {
-    var progress by remember { mutableFloatStateOf(0f) }
-    val progressAnimDuration = 4000
-    val progressAnimation by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(durationMillis = progressAnimDuration, easing = FastOutSlowInEasing),
-        label = "Indicator animation"
-    )
-//    CircularProgressIndicator(
-//        progress = {
-//            progressAnimation
-//        },
-//        modifier = modifier
-//            .fillMaxSize()
-//            .graphicsLayer {
-//                translationY = -size.height / 2
-//            }
-//            .scale(-1f, -1f),
-//        strokeWidth = 10.dp,
-//        trackColor = Color.LightGray,
-//        strokeCap = StrokeCap.Round
-//    )
-    LaunchedEffect(Unit) {
-        delay(100)
-        progress = 1f
-    }
-}
-
