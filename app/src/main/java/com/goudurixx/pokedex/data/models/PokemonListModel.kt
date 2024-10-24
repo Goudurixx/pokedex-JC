@@ -9,9 +9,11 @@ data class PokemonListModel(
     val results: List<PokemonListItemModel>
 )
 
-fun PokemonListResponse.toDataModel() = PokemonListModel(
+fun PokemonListResponse.toDataModel(favoriteList: List<Int> = emptyList()) = PokemonListModel(
     count = count,
     next = next,
     previous = previous,
-    results = results.map { it.toDataModel() }
+    results = results.map {
+        it.toDataModel(it.id in favoriteList)
+    }
 )

@@ -1,11 +1,14 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.GetPokedexGlobalDataQuery
 import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.common.models.PokemonStat
 
+@Keep
 data class PokedexGlobalDataReponse(
     val totalPokemonCount: Int,
+    val generationList: List<GenerationResponse>,
     val globalStatList: GlobalStatList,
     val maxHeight: Int,
     val minHeight: Int,
@@ -18,6 +21,12 @@ data class PokedexGlobalDataReponse(
 
 fun GetPokedexGlobalDataQuery.Data.toResponseModel() = PokedexGlobalDataReponse(
     totalPokemonCount = pokemon_v2_pokemon_aggregate.aggregate!!.count, //TODO: check if this is the correct field
+    generationList = pokemon_v2_generation.map {
+        GenerationResponse(
+            id = it.id,
+            name = it.name
+        )
+    },
     globalStatList = GlobalStatList(pokemon_v2_pokemonstat.map {
         PokemonStat(
             id = it.pokemon_v2_stat!!.id,

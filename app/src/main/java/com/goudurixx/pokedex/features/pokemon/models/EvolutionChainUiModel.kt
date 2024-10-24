@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.features.pokemon.models
 
+import com.goudurixx.pokedex.core.ui.theme.PokemonColor
 import com.goudurixx.pokedex.data.models.EvolutionChainModel
 import com.goudurixx.pokedex.data.models.EvolutionChainSpeciesModel
 
@@ -11,7 +12,9 @@ data class EvolutionChainSpeciesUiModel(
     val id : Int,
     val evolveFromId: Int?,
     val name: String,
-    val imageUrl: String)
+    val imageUrl: String,
+    val color : PokemonColor
+)
 
 fun EvolutionChainModel.toUiModel() = EvolutionChainUiModel(
     id = id,
@@ -22,5 +25,6 @@ fun EvolutionChainSpeciesModel.toUiModel() = EvolutionChainSpeciesUiModel(
     id = id,
     evolveFromId = evolveFromId,
     name = name,
-    imageUrl = imageUrl
+    imageUrl = imageUrl,
+    color = PokemonColor.entries[color ?: 0]
 )

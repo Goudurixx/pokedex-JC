@@ -1,10 +1,10 @@
 package com.goudurixx.pokedex.core.network.models
 
-import android.util.Log
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.PokemonGetPagedListQuery
-import com.goudurixx.pokedex.PokemonSearchCompletionQuery
 import kotlinx.serialization.Serializable
 
+@Keep
 @Serializable
 data class PokemonListItemResponse(
     val id: Int? = null,
@@ -14,7 +14,9 @@ data class PokemonListItemResponse(
     val weight: Int? = null,
     val baseExperience: Int? = null,
     val averageStat : Double? = null,
-    val colorId: Int? = null
+    val colorId: Int? = null,
+    val generationId : Int? = null,
+    val generationName : String? = null
 )
 
 fun PokemonGetPagedListQuery.Pokemon_v2_pokemon.toResponseModel() = PokemonListItemResponse(
@@ -23,14 +25,8 @@ fun PokemonGetPagedListQuery.Pokemon_v2_pokemon.toResponseModel() = PokemonListI
     height = height,
     weight = weight,
     baseExperience = base_experience,
-    averageStat = pokemon_v2_pokemonstats_aggregate.aggregate?.avg?.base_stat,
-    colorId = pokemon_v2_pokemonspecy!!.pokemon_v2_pokemoncolor!!.id
+    averageStat = avg_stat_and_color.pokemon_v2_pokemonstats_aggregate.aggregate?.avg?.base_stat,
+    colorId = avg_stat_and_color.pokemon_v2_pokemonspecy!!.pokemon_v2_pokemoncolor!!.id,
+    generationId = generation_id.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.id,
+    generationName = generation_id.pokemon_v2_pokemonspecy?.pokemon_v2_generation?.name
 )
-
-fun PokemonSearchCompletionQuery.Pokemon_v2_pokemon.toResponseModel() : PokemonListItemResponse {
-    Log.e("PokemonListItemResponse", "PokemonSearchCompletionQuery.Pokemon_v2_pokemon.toResponseModel() called with : $this")
-    return PokemonListItemResponse(
-        id = id,
-        name = name,
-    )
-}

@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.apollographql.apollo3.api.Optional
 import com.goudurixx.pokedex.core.common.models.OrderBy
 import com.goudurixx.pokedex.core.common.models.OrderByParameter
@@ -9,6 +10,7 @@ import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_aggregate_order_by
 import com.goudurixx.pokedex.type.Pokemon_v2_pokemonstat_avg_order_by
 import com.goudurixx.pokedex.type.order_by
 
+@Keep
 data class OrderByParametersNetworkModel(
     val parameters: List<Pokemon_v2_pokemon_order_by>
 )

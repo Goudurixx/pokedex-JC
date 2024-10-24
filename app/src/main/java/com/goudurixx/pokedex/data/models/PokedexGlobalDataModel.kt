@@ -7,8 +7,9 @@ import com.goudurixx.pokedex.core.network.models.PokedexGlobalDataReponse
 import java.util.Date
 
 data class PokedexGlobalDataModel(
-    val totalPokemonCount : Int,
-    val lastUpdated : Long,
+    val totalPokemonCount: Int,
+    val generationList: List<GenerationDataModel>,
+    val lastUpdated: Long,
     val globalStatList: GlobalStatList,
     val maxHeight: Int,
     val minHeight: Int,
@@ -21,6 +22,7 @@ data class PokedexGlobalDataModel(
 
 fun PokedexGlobalDataDaoModel.toDataModel() = PokedexGlobalDataModel(
     totalPokemonCount = totalPokemonCount,
+    generationList = generationList.map { GenerationDataModel(it.first, it.second) },
     lastUpdated = lastUpdated,
     globalStatList = globalStatList.toGlobalStatList(),
     maxHeight = maxHeight,
@@ -34,6 +36,7 @@ fun PokedexGlobalDataDaoModel.toDataModel() = PokedexGlobalDataModel(
 
 fun PokedexGlobalDataReponse.toDataModel() = PokedexGlobalDataModel(
     totalPokemonCount = totalPokemonCount,
+    generationList = generationList.map { it.toDataModel() },
     lastUpdated = Date().time,
     globalStatList = globalStatList,
     maxHeight = maxHeight,

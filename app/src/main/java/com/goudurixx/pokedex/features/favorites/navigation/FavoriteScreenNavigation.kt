@@ -15,8 +15,11 @@ fun NavController.navigateToFavorite(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.favoriteScreen(
+    navigateToPokemonDetail: (Int, Int) -> Unit,
 ) {
     composable(route = favoriteRoute) {
-        FavoriteRoute()
+        FavoriteRoute(
+            navigateToPokemonDetail = navigateToPokemonDetail,
+        )
     }
 }

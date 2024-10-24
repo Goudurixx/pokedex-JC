@@ -1,19 +1,35 @@
-query PokemonGetPagedList($_limit: Int = 1, $_offset: Int, $_order_by: [pokemon_v2_pokemon_order_by!] = {id: asc}, $_where: [pokemon_v2_pokemon_bool_exp!] = {id: {_gte: 0}}) {
-    pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by, where: {_and: $_where}) {
+fragment avg_stat_and_color on pokemon_v2_pokemon {
+    pokemon_v2_pokemonstats_aggregate {
+        aggregate {
+            avg {
+                base_stat
+            }
+        }
+    }
+    pokemon_v2_pokemonspecy {
+        pokemon_v2_pokemoncolor {
+            id
+        }
+    }
+}
+
+fragment generation_id on pokemon_v2_pokemon {
+    pokemon_v2_pokemonspecy{
+        pokemon_v2_generation{
+            id
+            name
+        }
+    }
+}
+
+query PokemonGetPagedList($_limit: Int = 100, $_offset: Int = 0, $_query: String = "", $_order_by: [pokemon_v2_pokemon_order_by!] = {id: asc}, $_where: [pokemon_v2_pokemon_bool_exp!] = {id: {_gte: 0}}) {
+    pokemon_v2_pokemon(limit: $_limit, offset: $_offset, order_by: $_order_by, where: {_and: $_where, name: {_regex: $_query}}) {
         name
         id
         height
         weight
         base_experience
-        pokemon_v2_pokemonstats_aggregate {
-            aggregate {
-                avg {
-                    base_stat
-                }
-            }
-        }
-        pokemon_v2_pokemonspecy{
-            pokemon_v2_pokemoncolor{id}
-        }
+        ...avg_stat_and_color
+        ...generation_id
     }
 }

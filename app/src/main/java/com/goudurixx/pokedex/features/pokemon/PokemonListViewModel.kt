@@ -5,16 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.utils.Result
+import com.goudurixx.pokedex.core.utils.asResult
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
+import com.goudurixx.pokedex.data.models.PokedexGlobalDataModel
 import com.goudurixx.pokedex.domain.mappers.FilterMapper
 import com.goudurixx.pokedex.features.pokemon.models.BaseFilterItemUiModel
-import com.goudurixx.pokedex.features.pokemon.models.BooleanFilterUiModel
 import com.goudurixx.pokedex.features.pokemon.models.PokemonListItemUiModel
-import com.goudurixx.pokedex.features.pokemon.models.RangeFilterItemUiModel
 import com.goudurixx.pokedex.features.pokemon.models.SortOrderItem
+import com.goudurixx.pokedex.features.pokemon.models.defaultBaseFilterItemUiModelList
 import com.goudurixx.pokedex.features.pokemon.models.sortOrderItemList
 import com.goudurixx.pokedex.features.pokemon.models.toOrderBy
 import com.goudurixx.pokedex.features.pokemon.models.toUiModel
@@ -41,54 +41,30 @@ class PokemonListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _sortFilterList = MutableStateFlow(sortOrderItemList())
+    private val _appDataResult = MutableStateFlow<PokedexGlobalDataModel?>(null)
     val sortFilterList = _sortFilterList.asStateFlow()
 
-    private var _filterList: MutableStateFlow<List<BaseFilterItemUiModel>> = MutableStateFlow(emptyList())
+    private var _filterList: MutableStateFlow<List<BaseFilterItemUiModel>> =
+        MutableStateFlow(emptyList())
 
-    val filterList : StateFlow<List<BaseFilterItemUiModel>> = _filterList.combine(pokemonRepository.appData.asResultWithLoading()) { filterList, appDataResult ->
-        when (appDataResult) {
-            Result.Loading -> filterList
-            is Result.Success -> {
-                filterList.ifEmpty {
-                    listOf(
-                        RangeFilterItemUiModel(
-                            FilterByParameter.ID,
-                            0f..appDataResult.data.maxId.toFloat(),
-                            0f..appDataResult.data.maxId.toFloat()
-                        ),
-                        RangeFilterItemUiModel(
-                            FilterByParameter.BASE_EXPERIENCE,
-                            appDataResult.data.minBaseExperience.toFloat()..appDataResult.data.maxBaseExperience.toFloat(),
-                            appDataResult.data.minBaseExperience.toFloat()..appDataResult.data.maxBaseExperience.toFloat()
-                        ),
-                        RangeFilterItemUiModel(
-                            FilterByParameter.HEIGHT,
-                            appDataResult.data.minHeight.toFloat()..appDataResult.data.maxHeight.toFloat(),
-                            appDataResult.data.minHeight.toFloat()..appDataResult.data.maxHeight.toFloat()
-                        ),
-                        RangeFilterItemUiModel(
-                            FilterByParameter.WEIGHT,
-                            appDataResult.data.minWeight.toFloat()..appDataResult.data.maxWeight.toFloat(),
-                            appDataResult.data.minWeight.toFloat()..appDataResult.data.maxWeight.toFloat()
-                        ),
-                        BooleanFilterUiModel(
-                            FilterByParameter.IS_LEGENDARY,
-                            null
-                        ),
-                        BooleanFilterUiModel(
-                            FilterByParameter.IS_DEFAULT,
-                            null
-                        ),
-                    )
+    val filterList: StateFlow<List<BaseFilterItemUiModel>> =
+        _filterList.combine(pokemonRepository.appData.asResultWithLoading()) { filterList, appDataResult ->
+            when (appDataResult) {
+                Result.Loading -> filterList
+                is Result.Success -> {
+                    filterList.ifEmpty {
+                        _appDataResult.value = appDataResult.data
+                        defaultBaseFilterItemUiModelList(appDataResult.data)
+                    }
                 }
+
+                is Result.Error -> filterList
             }
-            is Result.Error -> filterList
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue =  emptyList()
-    )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = emptyList()
+        )
 
     private val _search: MutableStateFlow<String> = MutableStateFlow("")
     val search = _search.asStateFlow()
@@ -128,55 +104,15 @@ class PokemonListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val appData = pokemonRepository.appData.asResultWithLoading().map {
+            pokemonRepository.appData.asResultWithLoading().map {
                 when (it) {
                     Result.Loading -> {
                         AppDataUiState.Loading
                     }
                     is Result.Success -> {
                         _filterList = MutableStateFlow(
-                            listOf<BaseFilterItemUiModel>(
-                                RangeFilterItemUiModel(
-                                    FilterByParameter.ID,
-                                    0f..it.data.maxId.toFloat(),
-                                    0f..it.data.maxId.toFloat()
-                                ),
-                                RangeFilterItemUiModel(
-                                    FilterByParameter.BASE_EXPERIENCE,
-                                    it.data.minBaseExperience.toFloat()..it.data.maxBaseExperience.toFloat(),
-                                    it.data.minBaseExperience.toFloat()..it.data.maxBaseExperience.toFloat()
-                                ),
-//            RangeFilterItemUiModel(FilterByParameter.HP, 0f..255f, 0f..255f),
-//            RangeFilterItemUiModel(FilterByParameter.ATTACK, 0f..255f, 0f..255f),
-                                RangeFilterItemUiModel(
-                                    FilterByParameter.HEIGHT,
-                                    it.data.minHeight.toFloat()..it.data.maxHeight.toFloat(),
-                                    it.data.minHeight.toFloat()..it.data.maxHeight.toFloat()
-                                ),
-                                RangeFilterItemUiModel(
-                                    FilterByParameter.WEIGHT,
-                                    it.data.minWeight.toFloat()..it.data.maxWeight.toFloat(),
-                                    it.data.minWeight.toFloat()..it.data.maxWeight.toFloat()
-                                ),
-//            BooleanFilterUiModel(FilterByParameter.IS_DEFAULT, false),
-//            ListFilterUiModel<TypeUiModel>(
-//                FilterByParameter.TYPE,
-//                listOf(
-//                    Pair(TypeUiModel(id = 1, "fire", TypeFire), false),
-//                    Pair(TypeUiModel(id = 2, "water", TypeWater), false)
-//                )
-//            ),
-                                BooleanFilterUiModel(
-                                    FilterByParameter.IS_LEGENDARY,
-                                    null
-                                ), //TODO CHECK THE THIRD STATE
-                                BooleanFilterUiModel(
-                                    FilterByParameter.IS_DEFAULT,
-                                    null
-                                ), //TODO CHECK THE THIRD STATE
-                            )
+                            listOf<BaseFilterItemUiModel>()
                         )
-                        Log.e("PokemonListViewModel", "appData: ${it.data} and _filterList: ${_filterList.value}")
                         AppDataUiState.Success(it.data)
                     }
 
@@ -205,6 +141,20 @@ class PokemonListViewModel @Inject constructor(
     fun updateFilter(filterList: List<BaseFilterItemUiModel>) {
         _filterList.update { _ ->
             filterList
+        }
+    }
+
+    fun resetFilter() {
+        _filterList.update { _ ->
+            _appDataResult.value?.let { defaultBaseFilterItemUiModelList(appDataResult = it) } ?: emptyList()
+        }
+    }
+
+    fun updateFavorite(pokemonId: Int, isFavorite: Boolean) {
+        viewModelScope.launch {
+            pokemonRepository.updateFavorite(pokemonId, isFavorite).asResult().collect{result ->
+                Log.e("PokemonListViewModel", "updateFavorite: $result")
+            }
         }
     }
 }

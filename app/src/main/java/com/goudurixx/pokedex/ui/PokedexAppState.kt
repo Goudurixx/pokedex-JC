@@ -1,11 +1,15 @@
 package com.goudurixx.pokedex.ui
 
+import android.util.Log
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.util.trace
+import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -59,16 +63,17 @@ class PokedexAppState(
         get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
 
     val shouldShowNavRail: Boolean
-       get() = !shouldShowBottomBar
+        get() = !shouldShowBottomBar
 
-    val isFullScreen : Boolean
-       @Composable get() = MainDestinations.entries.map { it.route }.contains(currentDestination?.route)
+    val isFullScreen: Boolean
+        @Composable get() = MainDestinations.entries.map { it.route }
+            .contains(currentDestination?.route)
 
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
         .stateIn(
             scope = coroutineScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(),
             initialValue = false,
         )
 
@@ -77,6 +82,14 @@ class PokedexAppState(
      * route.
      */
     val topLevelDestinations: List<MainDestinations> = MainDestinations.entries
+
+    /**
+     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
+     *
+     * This is used to de-duplicate navigation events.
+     */
+    private fun NavBackStackEntry.lifecycleIsResumed() =
+        this.lifecycle.currentState == Lifecycle.State.RESUMED
 
 
     /**
@@ -87,24 +100,35 @@ class PokedexAppState(
      * @param topLevelDestination: The destination the app needs to navigate to.
      */
     fun navigateToTopLevelDestination(topLevelDestination: MainDestinations) {
-            val topLevelNavOptions = navOptions {
-                // Pop up to the start destination of the graph to
-                // avoid building up a large stack of destinations
-                // on the back stack as users select items
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+        Log.e("PokedexAppState", "navigateToTopLevelDestination: $topLevelDestination")
+        trace("Navigation: ${topLevelDestination.name}") {
+            val topLevelNavOptions =
+                navOptions {
+                    // Avoid multiple copies of the same destination when
+                    // reselecting the same item
+                    launchSingleTop = true
+                    // Restore state when reselecting a previously selected item
+                    restoreState = true
+                    // Pop up to the start destination of the graph to
+                    // avoid building up a large stack of destinations
+                    // on the back stack as users select items
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
                 }
-                // Avoid multiple copies of the same destination when
-                // reselecting the same item
-                launchSingleTop = true
-                // Restore state when reselecting a previously selected item
-                restoreState = true
+
+
+            when (topLevelDestination) {
+                MainDestinations.HOME -> navController.navigateToHome(topLevelNavOptions)
+                MainDestinations.POKEMON -> navController.navigateToPokemonList(
+                    topLevelNavOptions
+                )
+
+                MainDestinations.FAVORITE -> navController.navigateToFavorite(
+                    topLevelNavOptions
+                )
             }
 
-        when (topLevelDestination) {
-            MainDestinations.HOME -> navController.navigateToHome(topLevelNavOptions)
-            MainDestinations.POKEMON -> navController.navigateToPokemonList(topLevelNavOptions)
-            MainDestinations.FAVORITE -> navController.navigateToFavorite(topLevelNavOptions)
         }
     }
 }

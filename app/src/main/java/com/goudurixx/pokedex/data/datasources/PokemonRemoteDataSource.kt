@@ -12,9 +12,7 @@ class PokemonRemoteDataSource @Inject constructor(
 ) {
 
     suspend fun getPokedexGlobalData() = pokemonApi.getPokedexGlobalData()
-    suspend fun getPokemonList(limit: Int, offset: Int, orderBy: OrderBy?, filterBy: List<FilterBy>?) = pokemonApi.getPokemonList(limit, offset, orderBy?.toOrderByNetworkModel(), filterBy?.toWhereParametersNetworkModel())
-
-    suspend fun getPokemonSearchCompletion(query: String) = pokemonApi.getPokemonSearchCompletion(query)
+    suspend fun getPokemonList( limit: Int?  = null, offset: Int? = null, query: String? = null, orderBy: OrderBy? = null, filterBy: List<FilterBy>? = null) = pokemonApi.getPokemonList(limit, offset, query, orderBy?.toOrderByNetworkModel(), filterBy?.toWhereParametersNetworkModel())
 
     suspend fun getPokemonDetail(id: Int) = pokemonApi.getPokemonDetail(id)
     suspend fun getPokemonEvolutionChain(id: Int) = pokemonApi.getPokemonEvolutionChain(id)

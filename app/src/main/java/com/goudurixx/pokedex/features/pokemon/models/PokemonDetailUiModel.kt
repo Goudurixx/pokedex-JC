@@ -1,6 +1,7 @@
 package com.goudurixx.pokedex.features.pokemon.models
 
 import androidx.compose.ui.graphics.Color
+import com.goudurixx.pokedex.core.ui.theme.PokemonColor
 import com.goudurixx.pokedex.data.models.PokemonModel
 import com.goudurixx.pokedex.data.models.StatModel
 import java.util.Locale
@@ -8,23 +9,25 @@ import java.util.Locale
 data class PokemonDetailUiModel(
     val id: Int,
     val name: String,
-    val height: Int,
-    val weight: Int,
+    val height: Int?,
+    val weight: Int?,
     val imageUrl: String?,
-    val sprites: SpritesUiModel,
-    val cries: String,
-    val abilities: List<AbilityUiModel>,
-    val types: List<TypeUiModel>,
-    val stats: List<StatUiModel>
+    val sprites: SpritesUiModel?,
+    val cries: String?,
+    val abilities: List<AbilityUiModel>?,
+    val types: List<TypeUiModel>?,
+    val stats: List<StatUiModel>?,
+    val color : PokemonColor,
+    val isFavorite: Boolean
 ){
     companion object {
-        fun placeHolder() = PokemonDetailUiModel(
-            id = 0,
+        fun placeHolder(id : Int?, color : Int) = PokemonDetailUiModel(
+            id = id ?: -1,
             name = "",
             height = 0,
             weight = 0,
-            imageUrl = "",
-            cries = "",
+            imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
+            cries = null,
             sprites = SpritesUiModel(),
             abilities = listOf(AbilityUiModel.placeHolder()),
             types = listOf(TypeUiModel(id = -1, name = "Loading...", color = Color.Gray)),
@@ -35,12 +38,14 @@ data class PokemonDetailUiModel(
                     value = 0,
                     effort = 0
                 ).toUiModel()
-            }
+            },
+            color = PokemonColor.entries[color],
+            isFavorite = false
         )
     }
 }
 
-fun PokemonModel.toUiModel() = PokemonDetailUiModel(
+fun PokemonModel.toUiModel(color: Int?) = PokemonDetailUiModel(
     id = id,
     name = name.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(
@@ -50,9 +55,11 @@ fun PokemonModel.toUiModel() = PokemonDetailUiModel(
     height = height,
     weight = weight,
     imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png",
-    cries = cries.latest,
-    sprites = sprites.toUiModel(),
-    abilities = abilities.map { it.toUiModel() },
-    types = types.map { it.toUiModel() },
-    stats = stats.map { it.toUiModel() }
+    cries = cries?.latest,
+    sprites = sprites?.toUiModel(),
+    abilities = abilities?.map { it.toUiModel() },
+    types = types?.map { it.toUiModel() },
+    stats = stats?.map { it.toUiModel() },
+    color = PokemonColor.entries[color ?: 0],
+    isFavorite = isFavorite
 )

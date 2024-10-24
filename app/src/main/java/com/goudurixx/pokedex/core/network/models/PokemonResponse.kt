@@ -1,5 +1,6 @@
 package com.goudurixx.pokedex.core.network.models
 
+import androidx.annotation.Keep
 import com.goudurixx.pokedex.core.network.models.pokemonDetail.AbilityResponse
 import com.goudurixx.pokedex.core.network.models.pokemonDetail.CriesResponse
 import com.goudurixx.pokedex.core.network.models.pokemonDetail.FormResponse
@@ -12,6 +13,7 @@ import com.goudurixx.pokedex.core.network.models.pokemonDetail.StatResponse
 import com.goudurixx.pokedex.core.network.models.pokemonDetail.TypeResponse
 import kotlinx.serialization.Serializable
 
+@Keep
 @Serializable
 data class PokemonResponse(
     val abilities: List<AbilityResponse>,

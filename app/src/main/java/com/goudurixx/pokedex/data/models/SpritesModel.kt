@@ -23,3 +23,10 @@ fun SpritesResponse.toDataModel() = SpritesModel(
     frontShiny = front_shiny,
     frontShinyFemale = front_shiny_female
 )
+
+/**
+ * This function is used to create a [SpritesModel] from a single url
+ *  defaulting to the frontDefault
+ *  @param url the url to use
+ */
+fun spritesFromUrl(url : String) = SpritesModel(frontDefault = url)

@@ -3,8 +3,10 @@ package com.goudurixx.pokedex.core.common.models
 import com.apollographql.apollo3.api.Optional
 import com.goudurixx.pokedex.type.Boolean_comparison_exp
 import com.goudurixx.pokedex.type.Int_comparison_exp
+import com.goudurixx.pokedex.type.String_comparison_exp
 
 enum class FilterByParameter(val parameterName: String) {
+    NAME("name"),
     ID("id"),
     HEIGHT("height"),
     WEIGHT("weight"),
@@ -13,12 +15,14 @@ enum class FilterByParameter(val parameterName: String) {
     DEFENSE("defense"),
     ATTACK("attack"),
     TYPE("type"),
+    GENERATION("generation"),
     IS_LEGENDARY("is_legendary"),
-    IS_DEFAULT("is_default")
+    IS_DEFAULT("is_default"),
+    IS_BABY("is_baby"),
+    IS_MYTHICAL("is_mythical"),
 }
 
 data class FilterBy(val parameter: FilterByParameter, val value: BaseFilterValue)
-
 
 abstract class BaseFilterValue {
     abstract fun toFilterNetworkModel(): Any
@@ -26,12 +30,18 @@ abstract class BaseFilterValue {
 
 
 data class BooleanFilterValue(val value: Boolean?) : BaseFilterValue() {
-    override fun toFilterNetworkModel() = Optional.present(Boolean_comparison_exp(_eq = Optional.presentIfNotNull(value)))
+    override fun toFilterNetworkModel() =
+        Optional.present(Boolean_comparison_exp(_eq = Optional.presentIfNotNull(value)))
+}
+
+data class StringFilterValue(val value: String?) : BaseFilterValue() {
+    override fun toFilterNetworkModel() =
+        Optional.present(String_comparison_exp(_regex = Optional.presentIfNotNull(value)))
 }
 
 data class IntRangeFilterValue(val value: IntRange) : BaseFilterValue() {
-    override fun toFilterNetworkModel() : Optional<Int_comparison_exp>{
-       return Optional.present(
+    override fun toFilterNetworkModel(): Optional<Int_comparison_exp> {
+        return Optional.present(
             Int_comparison_exp(
                 _gte = Optional.present(value.first),
                 _lte = Optional.present(value.last)
@@ -41,7 +51,13 @@ data class IntRangeFilterValue(val value: IntRange) : BaseFilterValue() {
 }
 
 data class ListFilterValue<T>(
-    var value: List<T>
+    var value: List<T>,
+    val type: FilterByParameter
 ) : BaseFilterValue() {
-    override fun toFilterNetworkModel() = value
+    override fun toFilterNetworkModel() =
+            when (type) {
+                FilterByParameter.TYPE -> if(value.isNotEmpty())Optional.present(Int_comparison_exp(_in = Optional.present((this.value as List<Int>)))) else Optional.Absent
+                FilterByParameter.GENERATION ->if(value.isNotEmpty()) Optional.present(Int_comparison_exp(_in = Optional.present((this.value as List<Int>)))) else Optional.Absent
+                else -> throw IllegalArgumentException("Type not supported, value is of type ${this::class.simpleName}")
+            }
 }

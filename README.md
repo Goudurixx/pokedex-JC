@@ -1,5 +1,6 @@
 # ![app icon](app/src/main/res/mipmap-hdpi/ic_launcher_round.webp) Pokedex-JC  
 
+https://github.com/Goudurixx/pokedex-JC/assets/63597122/8f973dcf-9235-45de-9b6e-a5998ab82963
 
 
 This project is a comprehensive Pokemon application developed using Kotlin, Java, and Gradle. It provides a rich set of features for Pokemon enthusiasts to explore and interact with a complete database.

@@ -1,10 +1,11 @@
 package com.goudurixx.pokedex.features.pokemon
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.utils.Result
+import com.goudurixx.pokedex.core.utils.asResult
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.data.models.PokedexGlobalDataModel
@@ -15,14 +16,16 @@ import com.goudurixx.pokedex.features.pokemon.navigation.PokemonArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PokemonDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    pokemonRepository: IPokemonRepository
+    val pokemonRepository: IPokemonRepository
 ) : ViewModel() {
 
     private val pokemonArgs = PokemonArgs(savedStateHandle)
@@ -49,6 +52,7 @@ class PokemonDetailViewModel @Inject constructor(
             when (it) {
                 is Result.Loading -> PokemonSpeciesUiState.Loading
                 is Result.Success -> {
+                    Log.e("PokemonDetailViewModel", "speciesUiState: ${it.data.toUiModel()}")
                     PokemonSpeciesUiState.Success(it.data.toUiModel())
                 }
 
@@ -60,26 +64,46 @@ class PokemonDetailViewModel @Inject constructor(
             initialValue = PokemonSpeciesUiState.Loading
         )
 
-    val uiState: StateFlow<PokemonDetailUiState> = _pokemonDetail.asResultWithLoading().map {
-        when (it) {
-            is Result.Loading -> PokemonDetailUiState.Loading
-            is Result.Success -> {
-                PokemonDetailUiState.Success(it.data.toUiModel())
-            }
+    val uiState: StateFlow<PokemonDetailUiState> =
+        _pokemonDetail.asResultWithLoading().distinctUntilChanged().map {
+            when (it) {
+                is Result.Loading -> PokemonDetailUiState.Loading
+                is Result.Success -> {
+                    if (it.data.abilities == null || it.data.stats == null || it.data.types == null) {
+                        PokemonDetailUiState.FallbackSuccess(it.data.toUiModel(pokemonArgs.color))
 
-            is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)
+                    } else {
+                        it.data.toUiModel(pokemonArgs.color).stats?.forEach {
+                            Log.e("PokemonDetailViewModel", "uiState: ${it}")
+                        }
+                        PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
+                    }
+                }
+
+                is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = PokemonDetailUiState.Loading
+        )
+
+    fun updateFavorite(isFavorite: Boolean) {
+        viewModelScope.launch {
+            pokemonRepository.updateFavorite(pokemonArgs.id, isFavorite).asResult()
+                .collect { result ->
+                    Log.e("PokemonDetailViewModel", "updateFavorite: $result")
+                }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = PokemonDetailUiState.Loading
-    )
+    }
 }
 
 sealed interface PokemonDetailUiState {
     object Loading : PokemonDetailUiState
 
     class Success(val pokemon: PokemonDetailUiModel) : PokemonDetailUiState
+
+    class FallbackSuccess(val pokemon: PokemonDetailUiModel) : PokemonDetailUiState
 
     class Error(val error: Exception) : PokemonDetailUiState
 }

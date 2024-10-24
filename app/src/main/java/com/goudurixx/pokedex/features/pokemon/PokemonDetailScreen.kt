@@ -2,15 +2,21 @@ package com.goudurixx.pokedex.features.pokemon
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.animation.graphics.res.animatedVectorResource
+import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
+import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -19,6 +25,7 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +36,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +46,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Pentagon
 import androidx.compose.material.icons.filled.PlayArrow
@@ -64,7 +74,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,23 +88,21 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.palette.graphics.Palette
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -106,17 +113,18 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.goudurixx.pokedex.R
+import com.goudurixx.pokedex.core.common.models.FilterByParameter
 import com.goudurixx.pokedex.core.common.models.GlobalStatList
 import com.goudurixx.pokedex.core.ui.component.radarChart.RadarChart
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.NetLinesStyle
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.Polygon
 import com.goudurixx.pokedex.core.ui.component.radarChart.models.PolygonStyle
 import com.goudurixx.pokedex.core.ui.utils.getContrastingColor
+import com.goudurixx.pokedex.core.ui.utils.shimmerEffect
 import com.goudurixx.pokedex.features.pokemon.models.EvolutionChainSpeciesUiModel
 import com.goudurixx.pokedex.features.pokemon.models.PokemonDetailUiModel
 import com.goudurixx.pokedex.features.pokemon.models.StatUiModel
 import com.goudurixx.pokedex.features.pokemon.models.TypeUiModel
-import kotlinx.coroutines.delay
 import java.util.Locale
 import kotlin.math.min
 
@@ -124,42 +132,54 @@ import kotlin.math.min
 fun PokemonDetailRoute(
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
     pokemonId: Int? = null,
     backgroundColor: Int? = null,
-    viewModel: PokemonDetailViewModel = hiltViewModel()
+    viewModel: PokemonDetailViewModel = hiltViewModel(),
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val appDataUiState by viewModel.appDataUiState.collectAsStateWithLifecycle()
     val speciesUiState by viewModel.speciesUiState.collectAsStateWithLifecycle()
+
+    BackHandler {
+        onBackClick()
+    }
     PokemonDetailScreen(
         uiState = uiState,
         appDataUiState = appDataUiState,
         speciesUiState = speciesUiState,
+        updateFavorite = viewModel::updateFavorite,
         onBackClick = onBackClick,
         navigateToPokemonDetail = navigateToPokemonDetail,
+        navigateToPokemonResultList = navigateToPokemonResultList,
         pokemonId = pokemonId,
         backgroundColor = backgroundColor ?: MaterialTheme.colorScheme.primary.toArgb()
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalAnimationGraphicsApi::class
+)
 @Composable
 fun PokemonDetailScreen(
     uiState: PokemonDetailUiState,
     appDataUiState: AppDataUiState,
     speciesUiState: PokemonSpeciesUiState,
+    updateFavorite: (Boolean) -> Unit,
     onBackClick: () -> Unit,
     navigateToPokemonDetail: (Int, Int?) -> Unit,
+    navigateToPokemonResultList: (FilterByParameter, String, String, Int?) -> Unit,
     pokemonId: Int?,
     backgroundColor: Int,
 ) {
     var pokemon by remember {
         mutableStateOf(
-            PokemonDetailUiModel.placeHolder()
+            PokemonDetailUiModel.placeHolder(id = pokemonId, color = backgroundColor)
         )
     }
-    var dominantColor by rememberSaveable { mutableIntStateOf(backgroundColor) }
+    val dominantColor by rememberSaveable { mutableIntStateOf(pokemon.color.color.toArgb()) }
     val columnBackgroundColor = MaterialTheme.colorScheme.surface
     val scrollState = rememberScrollState()
     val toolbarAlpha = remember {
@@ -169,17 +189,36 @@ fun PokemonDetailScreen(
             scrollState.value.toFloat() / 100
         }
     }
-    val pokeballImage = ImageBitmap.imageResource(R.drawable.pokeball)
+    val isFullyVisible by remember(uiState) {
+        derivedStateOf<Boolean> {
+            uiState is PokemonDetailUiState.Success
+        }
+    }
+    val pokebalImageVector = ImageVector.vectorResource(R.drawable.pokeball)
+    var atEnd by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(dominantColor)),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        LaunchedEffect(Unit) {
+            atEnd = !atEnd
+        }
+        val loadingImage =
+            AnimatedImageVector.animatedVectorResource(R.drawable.pokeball_loader)
+        Image(
+            rememberAnimatedVectorPainter(loadingImage, atEnd),
+            null,
+            modifier = Modifier
+                .alpha(0.2f)
+                .fillMaxWidth(0.5f)
+        )
+    }
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(dominantColor))
             .drawWithContent {
-                drawImage(
-                    image = pokeballImage,
-                    topLeft = Offset((pokeballImage.width / 2).toFloat(), 0f),
-                    colorFilter = ColorFilter.tint(Color.White.copy(alpha = 0.2f))
-                )
                 drawContent()
             },
         topBar = {
@@ -209,6 +248,36 @@ fun PokemonDetailScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold
                     )
+                    IconButton(onClick = {
+                        updateFavorite(!pokemon.isFavorite)
+                    }) {
+                        //TODO FIX ICON GETTING STUCK IN ONE STATE
+//                        AnimatedContent(
+//                            targetState = pokemon,
+//                            contentKey = { state ->
+//                                // Define a mapping between `targetState` and a key.
+//                                // This function should return a key that represents the parts of `targetState` that should trigger a transition.
+//                                // For example, if `targetState` is a data class with two properties and you only want to trigger a transition when the first property changes, you can return the first property as the key.
+//                                state.isFavorite
+//                            },
+//                            label = ""
+//                        ) { target ->
+                        if (pokemon.isFavorite) {
+                            Icon(
+                                imageVector = Icons.Filled.Favorite,
+                                contentDescription = null,
+                                tint = Color.Red
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.FavoriteBorder,
+                                contentDescription = null,
+                                tint = Color.Gray
+                            )
+                        }
+
+//                        }
+                    }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors().copy(
                     containerColor = Color(dominantColor).getContrastingColor()
@@ -224,24 +293,17 @@ fun PokemonDetailScreen(
                 )
             )
         },
-//        containerColor = Color(dominantColor), //TODO FIND A WAY TO DRAW CONTENT AND HAVE CONTAINER COLOR
         containerColor = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
 
-        AnimatedVisibility(
-            visible = uiState is PokemonDetailUiState.Loading,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
-            ) { MyIndicator(Modifier.padding(it)) }
-        }
         LaunchedEffect(uiState) {
-            if (uiState is PokemonDetailUiState.Success)
+            if (uiState is PokemonDetailUiState.Success) {
                 pokemon = uiState.pokemon
+            }
+            if (uiState is PokemonDetailUiState.FallbackSuccess) {
+                pokemon = uiState.pokemon
+            }
         }
         Box(
             modifier = Modifier
@@ -260,24 +322,43 @@ fun PokemonDetailScreen(
                     .background(columnBackgroundColor, RoundedCornerShape(8.dp))
                     .padding(8.dp)
             ) {
-                TypesContent(
-                    types = pokemon.types,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 32.dp)
-                )
                 AboutContent(
-                    pokemon = pokemon, modifier = Modifier
+                    pokemon = pokemon,
+                    isFullyVisible = isFullyVisible,
+                    modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                 )
-                StatisticsContentWrapper(
-                    stats = pokemon.stats,
-                    appDataUiState = appDataUiState,
-                    modifier = Modifier
-                        .heightIn(min = 200.dp, max = 300.dp)
-                        .fillMaxWidth()
-                )
+                AnimatedVisibility(visible = isFullyVisible, modifier = Modifier.fillMaxWidth()) {
+                    pokemon.types?.let { types ->
+                        TypesContent(
+                            types = types,
+                            onTypeClicked = { typeId, typeName, typeColor ->
+                                navigateToPokemonResultList(
+                                    FilterByParameter.TYPE,
+                                    typeId.toString(),
+                                    typeName,
+                                    typeColor
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 32.dp)
+                        )
+                    }
+                }
+                AnimatedVisibility(visible = isFullyVisible, modifier = Modifier.fillMaxWidth()) {
+                    pokemon.stats?.let { stats ->
+                        StatisticsContentWrapper(
+                            stats = stats,
+                            appDataUiState = appDataUiState,
+                            color = pokemon.color.color,
+                            modifier = Modifier
+                                .heightIn(min = 200.dp, max = 300.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
 
                 EvolutionChainContent(
                     speciesUiState = speciesUiState,
@@ -286,13 +367,10 @@ fun PokemonDetailScreen(
                         .heightIn(min = 150.dp)
                         .fillMaxWidth()
                 )
+
             }
             PokemonImageContent(
                 pokemon = pokemon,
-                backgroundColor = backgroundColor,
-                onDominantColorChange = { newDominantColor ->
-                    dominantColor = newDominantColor
-                }
             )
         }
         AnimatedVisibility(visible = uiState is PokemonDetailUiState.Error, enter = fadeIn()) {
@@ -310,7 +388,9 @@ private fun PokemonDetailScreenErrorContent(modifier: Modifier) {
         val context = LocalContext.current
         val imageLoader = ImageLoader.Builder(context)
             .components {
-                add(ImageDecoderDecoder.Factory())
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    add(ImageDecoderDecoder.Factory())
+                }
             }
             .build()
         Column(modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -337,36 +417,38 @@ private fun PokemonDetailScreenErrorContent(modifier: Modifier) {
 @Composable
 fun PokemonImageContent(
     pokemon: PokemonDetailUiModel,
-    backgroundColor: Int,
-    onDominantColorChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val imageRequest = ImageRequest.Builder(LocalContext.current)
         .data(pokemon.imageUrl)
         .allowHardware(false)
         .crossfade(true)
-        .listener { _, result ->
-            onDominantColorChange(
-                Palette.from(result.drawable.toBitmap()).generate().dominantSwatch?.rgb
-                    ?: backgroundColor
-            )
-        }.build()
+//        .listener { _, result ->
+//            onDominantColorChange(
+//                Palette.from(result.drawable.toBitmap()).generate().dominantSwatch?.rgb
+//                    ?: backgroundColor
+//            )
+//        }
+        .build()
 
 
     var mediaPlayer: MediaPlayer? = null
-    try {
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            setDataSource(pokemon.cries)
-            prepareAsync() // might take long! (for buffering, etc)
+
+    pokemon.cries?.let { cries ->
+        try {
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(cries)
+                prepareAsync() // might take long! (for buffering, etc)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
     }
 
     Box(
@@ -389,22 +471,19 @@ fun PokemonImageContent(
                 label = "transition of image"
             )
 
-            if (state is AsyncImagePainter.State.Error) {
+            SubcomposeAsyncImageContent(
+                modifier = Modifier
+                    .scale(.8f + (.2f * transition))
+                    .graphicsLayer { rotationX = (1f - transition) * 5f }
+                    .alpha(min(1f, transition / .2f))
 
-            } else {
-                SubcomposeAsyncImageContent(
-                    modifier = Modifier
-                        .scale(.8f + (.2f * transition))
-                        .graphicsLayer { rotationX = (1f - transition) * 5f }
-                        .alpha(min(1f, transition / .2f))
-
-                )
-            }
+            )
         }
 
         OutlinedIconButton(
             onClick = { mediaPlayer?.start() },
             modifier = Modifier.align(Alignment.CenterStart),
+            enabled = mediaPlayer != null,
             colors = IconButtonDefaults.outlinedIconButtonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
                     alpha = 0.5f
@@ -421,19 +500,26 @@ fun PokemonImageContent(
 }
 
 @Composable
-fun TypesContent(types: List<TypeUiModel>, modifier: Modifier) {
+fun TypesContent(
+    types: List<TypeUiModel>,
+    onTypeClicked: (Int, String, Int?) -> Unit,
+    modifier: Modifier
+) {
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        types.forEach { (_, type, color) ->
+        types.forEach { (id, type, color) ->
             Button(
-                onClick = { /*TODO navigate to type screen*/ },
+                onClick = { onTypeClicked(id, type, color.toArgb()) },
                 modifier = Modifier
                     .padding(8.dp)
-                    .height(32.dp),
+                    .clip(RoundedCornerShape(16.dp))
+                    .height(32.dp)
+                    .shimmerEffect(isLoading = id == -1),
+                enabled = id != -1,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = color,
                     contentColor = color.getContrastingColor()
@@ -442,6 +528,7 @@ fun TypesContent(types: List<TypeUiModel>, modifier: Modifier) {
                 Text(
                     text = type.capitalize(Locale.ROOT),
                     style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
                 )
             }
         }
@@ -449,7 +536,11 @@ fun TypesContent(types: List<TypeUiModel>, modifier: Modifier) {
 }
 
 @Composable
-fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
+fun AboutContent(
+    pokemon: PokemonDetailUiModel,
+    isFullyVisible: Boolean,
+    modifier: Modifier,
+) {
     Text(
         text = "About",
         modifier = modifier,
@@ -461,81 +552,100 @@ fun AboutContent(pokemon: PokemonDetailUiModel, modifier: Modifier) {
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row {
-                Icon(
-                    imageVector = Icons.Default.FitnessCenter,
-                    contentDescription = "weight of the pokemon"
-                )
+        pokemon.weight?.let { weight ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.FitnessCenter,
+                        contentDescription = "weight of the pokemon"
+                    )
+                    Text(
+                        text = "$weight kg",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
                 Text(
-                    text = "${pokemon.weight} kg",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(8.dp)
+                    text = "Weight",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 8.sp,
+                        lineHeight = 12.sp
+                    )
                 )
             }
-            Text(
-                text = "Weight",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
         VerticalDivider(
             modifier = Modifier.fillMaxHeight(),
             thickness = Dp.Hairline,
             color = MaterialTheme.colorScheme.onSurface
         ) //TODO FIX THAT
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row {
-                Icon(
-                    imageVector = Icons.Default.Straighten,
-                    contentDescription = "height of the pokemon",
-                    modifier = Modifier.rotate(90f)
-                )
+        pokemon.height?.let { height ->
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row {
+                    Icon(
+                        imageVector = Icons.Default.Straighten,
+                        contentDescription = "height of the pokemon",
+                        modifier = Modifier.rotate(90f)
+                    )
+                    Text(
+                        text = "$height m",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
                 Text(
-                    text = "${pokemon.height} m",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(8.dp)
+                    text = "Height",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 8.sp,
+                        lineHeight = 12.sp
+                    )
                 )
             }
-            Text(
-                text = "Height",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
         VerticalDivider(
             modifier = Modifier.fillMaxHeight(),
             thickness = 1.dp,
             color = MaterialTheme.colorScheme.onSurface
         ) //TODO FIX THAT
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            pokemon.abilities.forEach { ability ->
-                Text(
-                    text = ability.name.capitalize(Locale.ROOT),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+        AnimatedVisibility(visible = isFullyVisible, enter = fadeIn() + expandHorizontally()) {
+            pokemon.abilities?.let { abilities ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    abilities.forEach { ability ->
+                        Text(
+                            text = ability.name.capitalize(Locale.ROOT),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Text(
+                        text = "Moves",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 8.sp,
+                            lineHeight = 12.sp
+                        )
+                    )
+                }
             }
-            Text(
-                text = "Moves",
-                style = MaterialTheme.typography.bodySmall.copy(fontSize = 8.sp, lineHeight = 12.sp)
-            )
         }
     }
 }
 
 
 @Composable
-fun StatisticsContentWrapper(
+fun ColumnScope.StatisticsContentWrapper(
     stats: List<StatUiModel>,
     appDataUiState: AppDataUiState,
+    color: Color,
     modifier: Modifier,
 ) {
 
     var showBarChart by remember { mutableStateOf(true) }
+    val screenIsFull = LocalConfiguration.current.screenWidthDp < 600.dp.value
 
     Column(
         modifier = modifier.wrapContentSize(align = Alignment.CenterStart)
@@ -549,7 +659,7 @@ fun StatisticsContentWrapper(
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
-            OutlinedIconButton(
+            if (screenIsFull) OutlinedIconButton(
                 onClick = { showBarChart = !showBarChart },
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
@@ -571,20 +681,38 @@ fun StatisticsContentWrapper(
                 }
             }
         }
-        if(appDataUiState is AppDataUiState.Success){
-            if ((!showBarChart)) {
-                StatisticsContentAsBarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            } else {
-                StatisticsContentAsRadarChart(
-                    stats = stats,
-                    globalStatList = appDataUiState.appData.globalStatList,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
+        if (appDataUiState is AppDataUiState.Success) {
+            if (screenIsFull)
+                if ((!showBarChart)) {
+                    StatisticsContentAsBarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        color = color,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                } else {
+                    StatisticsContentAsRadarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            else
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    StatisticsContentAsRadarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .widthIn(max = 300.dp)
+                    )
+                    StatisticsContentAsBarChart(
+                        stats = stats,
+                        globalStatList = appDataUiState.appData.globalStatList,
+                        color = color,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
         }
     }
 }
@@ -592,6 +720,7 @@ fun StatisticsContentWrapper(
 @Composable
 fun StatisticsContentAsBarChart(
     stats: List<StatUiModel>,
+    color: Color,
     globalStatList: GlobalStatList,
     modifier: Modifier,
 ) {
@@ -606,7 +735,7 @@ fun StatisticsContentAsBarChart(
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        for (stat in stats) {
+        stats.forEachIndexed { index, stat ->
             val transition by animateFloatAsState(
                 targetValue = if (beginAnimation) stat.value / 255f else 0f,
                 label = "transition of the statistics ${stat.statId}"
@@ -634,17 +763,53 @@ fun StatisticsContentAsBarChart(
                 LinearProgressIndicator(
                     progress = { transition },
                     trackColor = Color.LightGray,
-                    color = stat.color,
+                    color = color,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp),
+                        .height(4.dp)
+                        .drawWithContent {
+                            drawContent()
+                            drawRect(
+                                color = Color.Green.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].min / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+                            drawRect(
+                                color = Color.Blue.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].avg / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+                            drawRect(
+                                color = Color.Red.copy(alpha = 0.5f),
+                                topLeft = Offset(
+                                    (globalStatList.statList[index].max / 255.0 * size.width).toFloat(),
+                                    0f
+                                ),
+                                size = androidx.compose.ui.geometry.Size(
+                                    10f,
+                                    size.height
+                                )
+                            )
+
+                        },
                     strokeCap = StrokeCap.Round
                 )
 
             }
         }
     }
-//    }
 }
 
 @Composable
@@ -668,18 +833,20 @@ fun StatisticsContentAsRadarChart(
         beginAnimation = true
     }
 
-    val minPolygon = Polygon(
-        values = globalStatList.statList.map { it.min.toDouble() },
-        unit = "",
-        style = PolygonStyle(
-            fillColor = Color.Transparent,
-            fillColorAlpha = 0f,
-            borderColor = Color.Green,
-            borderColorAlpha = 0.9f,
-            borderStrokeWidth = 1f,
-            borderStrokeCap = StrokeCap.Butt
+    val minPolygon = remember {
+        Polygon(
+            values = globalStatList.statList.map { it.min.toDouble() },
+            unit = "",
+            style = PolygonStyle(
+                fillColor = Color.Transparent,
+                fillColorAlpha = 0f,
+                borderColor = Color.Green,
+                borderColorAlpha = 0.9f,
+                borderStrokeWidth = 1f,
+                borderStrokeCap = StrokeCap.Butt
+            )
         )
-    )
+    }
     val avgPolygon = remember {
         Polygon(
             values = globalStatList.statList.map { it.avg },
@@ -719,6 +886,7 @@ fun StatisticsContentAsRadarChart(
             )
         },
         labelsStyle = MaterialTheme.typography.bodySmall.copy(
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         ),
         netLinesStyle = NetLinesStyle(
@@ -828,11 +996,10 @@ fun EvolutionChainRow(
 @Composable
 fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Unit) {
 
-    val surface = MaterialTheme.colorScheme.surface
-    var dominantColor by remember { mutableIntStateOf(surface.toArgb()) }
+    val dominantColor by remember { mutableIntStateOf(pokemon.color.color.toArgb()) }
 
     Card(
-        onClick = { onCardClick(dominantColor) },
+        onClick = { onCardClick(pokemon.color.ordinal) },
         modifier = Modifier
             .padding(8.dp)
             .width(80.dp)
@@ -857,13 +1024,14 @@ fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Un
                 .data(pokemon.imageUrl)
                 .allowHardware(false)
                 .crossfade(true)
-                .listener { _, result ->
-                    result.drawable.let {
-                        dominantColor =
-                            Palette.from(it.toBitmap()).generate().dominantSwatch?.rgb
-                                ?: surface.toArgb()
-                    }
-                }.build()
+//                .listener { _, result ->
+//                    result.drawable.let {
+//                        dominantColor =
+//                            Palette.from(it.toBitmap()).generate().dominantSwatch?.rgb
+//                                ?: surface.toArgb()
+//                    }
+//                }
+                .build()
 
             AsyncImage(
                 model = imageRequest,
@@ -879,100 +1047,3 @@ fun PokemonCard(pokemon: EvolutionChainSpeciesUiModel, onCardClick: (Int?) -> Un
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun PokemonDetailScreenPreview() {
-//    CompositionLocalProvider(LocalContext provides LocalContext.current) {
-//        PokedexTheme {
-//            val title by remember {
-//                mutableStateOf("Pachyradjah N°0879")
-//            }
-//            val backgroundColor = MaterialTheme.colorScheme.secondaryContainer
-//            val dominantColor by remember { mutableIntStateOf(backgroundColor.toArgb()) }
-//
-//            val statList = listOf(
-//                Pair("PV", 92),
-//                Pair("Attaque", 130),
-//                Pair("Défense", 115),
-//                Pair("Attaque Spéciale", 80),
-//                Pair("Défense Spéciale", 85),
-//                Pair("Vitesse", 55)
-//            )
-//
-//            val pokemonDetail = PokemonDetailUiModel(
-//                id = 879,
-//                name = "pachyradjah",
-//                weight = 650,
-//                height = 3,
-//                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/879.png",
-//                cries = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/cries/879.mp3",
-//                abilities = listOf(
-//                    AbilityUiModel("Régé-Force", isHidden = false, slot = 1),
-//                    AbilityUiModel("Fermeté", isHidden = false, slot = 2)
-//                ),
-//                types = listOf(
-//                    TypeUiModel(id = 1, name = "Psychic", color = TypePsychic),
-//                ),
-//                stats = statList.map { (name, value) ->
-//                    StatUiModel(
-//                        statName = name,
-//                        statId = statList.indexOfFirst { it.first == name } + 1,
-//                        value = value,
-//                        effort = 0,
-//                        color = when (name) {
-//                            "PV" -> Color(0xFFA8A878)
-//                            "Attaque" -> Color(0xFFEE8130)
-//                            "Défense" -> Color(0xFF6390F0)
-//                            "Attaque Spéciale" -> Color(0xFFF7D02C)
-//                            "Défense Spéciale" -> Color(0xFF96D9D6)
-//                            "Vitesse" -> Color(0xFFC5C5C5)
-//                            else -> Color.Black
-//                        }
-//                    )
-//                },
-//                sprites = SpritesUiModel(),
-//            )
-//            PokemonDetailScreen(
-//                uiState = PokemonDetailUiState.Loading,
-////                uiState = PokemonDetailUiState.Success(pokemonDetail),
-//                speciesUiState = PokemonSpeciesUiState.Loading,
-//                onBackClick = { /*TODO*/ },
-//                navigateToPokemonDetail = { _, _ -> },
-//                pokemonId = 879,
-//                backgroundColor = dominantColor,
-//                globalStatList = globalStatList
-//            )
-//        }
-//    }
-//}
-
-@Composable
-fun MyIndicator(modifier: Modifier = Modifier) {
-    var progress by remember { mutableFloatStateOf(0f) }
-    val progressAnimDuration = 4000
-    val progressAnimation by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(durationMillis = progressAnimDuration, easing = FastOutSlowInEasing),
-        label = "Indicator animation"
-    )
-    CircularProgressIndicator(
-        progress = {
-            progressAnimation
-        },
-        modifier = modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                translationY = -size.height / 2
-            }
-            .scale(-1f, -1f),
-        strokeWidth = 10.dp,
-        trackColor = Color.LightGray,
-        strokeCap = StrokeCap.Round
-    )
-    LaunchedEffect(Unit) {
-        delay(100)
-        progress = 1f
-    }
-}
-

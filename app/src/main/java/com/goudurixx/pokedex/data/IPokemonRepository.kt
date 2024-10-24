@@ -12,10 +12,14 @@ import kotlinx.coroutines.flow.Flow
 interface IPokemonRepository {
 
     val appData: Flow<PokedexGlobalDataModel>
+    fun updateAppData(): Flow<PokedexGlobalDataModel>
 
-    fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>) :  Flow<PagingData<PokemonListItemModel>>
+    fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>? = null) :  Flow<PagingData<PokemonListItemModel>>
     fun getPokemonCompletion(query: String) : Flow<List<PokemonListItemModel>>
     fun getPokemonDetail(id: Int) : Flow<PokemonModel>
 
     fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel>
+    suspend fun updateFavorite(pokemonId: Int, isFavorite: Boolean): Flow<Unit>
+
+    fun getAllFavoritePokemon() : Flow<List<PokemonListItemModel>>
 }
