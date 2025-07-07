@@ -125,7 +125,10 @@ fun MainNavGraph(
             navigateToPokemonResultList = navController::navigateToPokemonResultList
 
         )
-        pokemonList(navigateToPokemonDetail = navController::navigateToPokemonDetail)
+        pokemonList(
+            navigateToPokemonDetail = navController::navigateToPokemonDetail,
+            navigateToPokemonResultList = navController::navigateToPokemonResultList
+        )
         pokemonDetailScreen(
             onBackClick = {
                 while (navController.popBackStack()) {
