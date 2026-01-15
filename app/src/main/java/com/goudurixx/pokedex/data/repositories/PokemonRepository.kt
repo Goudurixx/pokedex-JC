@@ -10,6 +10,7 @@ import com.goudurixx.pokedex.core.common.models.FilterBy
 import com.goudurixx.pokedex.core.common.models.OrderBy
 import com.goudurixx.pokedex.core.database.PokedexDatabase
 import com.goudurixx.pokedex.core.database.models.PokemonDaoModel
+import com.goudurixx.pokedex.core.utils.Result
 import com.goudurixx.pokedex.core.utils.asResultWithLoading
 import com.goudurixx.pokedex.data.IPokemonRepository
 import com.goudurixx.pokedex.data.datasources.PokemonLocalDataSource
@@ -20,14 +21,16 @@ import com.goudurixx.pokedex.data.models.EvolutionChainModel
 import com.goudurixx.pokedex.data.models.PokedexGlobalDataModel
 import com.goudurixx.pokedex.data.models.PokemonListItemModel
 import com.goudurixx.pokedex.data.models.PokemonModel
+import com.goudurixx.pokedex.data.models.spritesFromUrl
 import com.goudurixx.pokedex.data.models.toDataModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import com.goudurixx.pokedex.core.utils.Result
-import com.goudurixx.pokedex.data.models.spritesFromUrl
 
 class PokemonRepository @Inject constructor(
     private val remoteDataSource: PokemonRemoteDataSource,
@@ -35,8 +38,6 @@ class PokemonRepository @Inject constructor(
     private val pokedexDatabase: PokedexDatabase,
 ) : IPokemonRepository {
 
-    private var orderBy: OrderBy? = null
-    private var filterBy: List<FilterBy>? = null
     private var pager: Pager<Int, PokemonDaoModel>? = null
 
     override val appData: Flow<PokedexGlobalDataModel> =
@@ -80,12 +81,45 @@ class PokemonRepository @Inject constructor(
         }
     }
 
+    override suspend fun getPokemonDetailSusp(id: Int): PokemonModel {
+        withContext(Dispatchers.IO) {
+            val localPokemon = localDataSource.getPokemonDetail(id).firstOrNull()?.first()
+            return@withContext try {
+                val remotePokemon = remoteDataSource.getPokemonDetail(id)
+                if (localPokemon == null) {
+                    remotePokemon.toDataModel(false)
+                } else {
+                    remotePokemon.toDataModel(localPokemon.isFavorite == 1)
+                }
+            } catch (e: Exception) {
+                Log.e("PokemonRepository", "Error fetching remote Pokemon detail: $e")
+                if (localPokemon == null) {
+                    throw IllegalStateException("Local Pokemon data not found for ID: $id")
+                } else {
+                    val pokemon = localPokemon.toDataModel()
+                    PokemonModel(
+                        id = pokemon.id,
+                        name = pokemon.name,
+                        height = pokemon.height,
+                        weight = pokemon.weight,
+                        sprites = spritesFromUrl(pokemon.imageUrl),
+                        isFavorite = pokemon.isFavorite
+                    )
+                }
+            }
+        }
+    }
+
+
     override fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel> = flow {
         emit(remoteDataSource.getPokemonEvolutionChain(id).toDataModel())
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    private fun createPager(): Pager<Int, PokemonDaoModel> {
+    private fun createPager(
+        orderBy: OrderBy?,
+        filterBy: List<FilterBy>?
+    ): Pager<Int, PokemonDaoModel> {
         val pagingKey = orderBy.toString() + filterBy.toString()
         Log.e("PokemonRepository", "createPager with pagingKey: $pagingKey")
         return Pager(
@@ -113,16 +147,11 @@ class PokemonRepository @Inject constructor(
             "PokemonRepository",
             "updatePaginationParams with orderBy: $orderBy and filterBy: $filterBy"
         )
-        return if (this.filterBy != filterBy || this.orderBy != orderBy || pager == null) {
-            Log.e(
-                "PokemonRepository", "updatePaginationParams with new params : \n" +
-                        "orderBy:  ${this.orderBy} VS $orderBy \n" +
-                        "filterBy:  ${this.filterBy} VS $filterBy \n" +
-                        "pager: $pager \n"
+        return if (pager == null) {
+            createPager(
+                orderBy = orderBy,
+                filterBy = filterBy,
             )
-            if (this.filterBy != filterBy) this.filterBy = filterBy
-            if (this.orderBy != orderBy) this.orderBy = orderBy
-            createPager()
         } else {
             Log.e("PokemonRepository", "updatePaginationParams with same params")
             pager!!

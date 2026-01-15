@@ -14,6 +14,7 @@ import com.goudurixx.pokedex.features.pokemon.models.PokemonDetailUiModel
 import com.goudurixx.pokedex.features.pokemon.models.toUiModel
 import com.goudurixx.pokedex.features.pokemon.navigation.PokemonArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -29,7 +30,7 @@ class PokemonDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val pokemonArgs = PokemonArgs(savedStateHandle)
-    private val _pokemonDetail = pokemonRepository.getPokemonDetail(pokemonArgs.id)
+    private val _pokemonDetail = MutableStateFlow<Result<PokemonDetailUiModel>>(Result.Loading)
     val appDataUiState: StateFlow<AppDataUiState> =
         pokemonRepository.appData.asResultWithLoading().map {
             when (it) {
@@ -64,30 +65,31 @@ class PokemonDetailViewModel @Inject constructor(
             initialValue = PokemonSpeciesUiState.Loading
         )
 
-    val uiState: StateFlow<PokemonDetailUiState> =
-        _pokemonDetail.asResultWithLoading().distinctUntilChanged().map {
-            when (it) {
-                is Result.Loading -> PokemonDetailUiState.Loading
-                is Result.Success -> {
-                    if (it.data.abilities == null || it.data.stats == null || it.data.types == null) {
-                        PokemonDetailUiState.FallbackSuccess(it.data.toUiModel(pokemonArgs.color))
-
-                    } else {
-                        it.data.toUiModel(pokemonArgs.color).stats?.forEach {
-                            Log.e("PokemonDetailViewModel", "uiState: ${it}")
-                        }
-                        PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
-                    }
-                }
-
-                is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = PokemonDetailUiState.Loading
-        )
-
+    val uiState: StateFlow<PokemonDetailUiState> = MutableStateFlow(PokemonDetailUiState.Loading)
+//    {
+//        _pokemonDetail.asResultWithLoading().distinctUntilChanged().map {
+//            when (it) {
+//                is Result.Loading -> PokemonDetailUiState.Loading
+//                is Result.Success -> {
+//                    if (it.data.abilities == null || it.data.stats == null || it.data.types == null) {
+//                        PokemonDetailUiState.FallbackSuccess(it.data.toUiModel(pokemonArgs.color))
+//
+//                    } else {
+//                        it.data.toUiModel(pokemonArgs.color).stats?.forEach {
+//                            Log.e("PokemonDetailViewModel", "uiState: ${it}")
+//                        }
+//                        PokemonDetailUiState.Success(it.data.toUiModel(pokemonArgs.color))
+//                    }
+//                }
+//
+//                is Result.Error -> PokemonDetailUiState.Error(it.exception as Exception)
+//            }
+//        }.stateIn(
+//            scope = viewModelScope,
+//            started = SharingStarted.WhileSubscribed(),
+//            initialValue = PokemonDetailUiState.Loading
+//        )
+//    }
     fun updateFavorite(isFavorite: Boolean) {
         viewModelScope.launch {
             pokemonRepository.updateFavorite(pokemonArgs.id, isFavorite).asResult()

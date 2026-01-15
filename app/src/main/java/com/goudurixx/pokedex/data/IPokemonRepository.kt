@@ -17,6 +17,7 @@ interface IPokemonRepository {
     fun getPokemonPagerList(orderBy: OrderBy?, filterBy : List<FilterBy>? = null) :  Flow<PagingData<PokemonListItemModel>>
     fun getPokemonCompletion(query: String) : Flow<List<PokemonListItemModel>>
     fun getPokemonDetail(id: Int) : Flow<PokemonModel>
+    suspend fun getPokemonDetailSusp(id: Int) : PokemonModel
 
     fun getPokemonEvolutionChain(id: Int): Flow<EvolutionChainModel>
     suspend fun updateFavorite(pokemonId: Int, isFavorite: Boolean): Flow<Unit>
